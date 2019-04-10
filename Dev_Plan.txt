@@ -1,0 +1,28 @@
+﻿Group Name: 0307
+Meetings:
+4.8         Initial Meeting, GitHub repository created.
+4.10        Initial Task allocation, the next meeting will be 4.15
+
+
+
+
+Task list:
+1.Json Marshalling in TCP -- Document.java, Protocol, file transmission
+2.Nonblocking TCP transmission
+        3.Multi-thread per request, File system management
+            4.Unstructured P2P connections
+            5.Synchronization between P2P
+        6.System integration test
+
+
+Plan:
+4.15         Finish basic testing on Jason in TCP
+                Hold by: Xin Tian, Yejing Zhang        
+        Testing on non-blocking TCP connections with file transmission.
+                Hold by: Tian Jin
+        Testing on multi-thread per request with file system
+                Hold by: Rongbing Shan
+4.22        Combining multiple functions
+4.26        Developing tasks 5&6 and other functions
+4.29         SIT &  Report
+5.3        Finish of report and project submission
