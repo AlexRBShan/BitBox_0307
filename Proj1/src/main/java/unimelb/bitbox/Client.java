@@ -16,12 +16,19 @@ public class Client {
 		
 		try(Socket client = new Socket(ip,portnum)){
 			// create input and output streams for 
-			DataInputStream input = new DataInputStream(client.getInputStream());
-			DataOutputStream output = new DataOutputStream(client.getOutputStream());
+			BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF8"));
+			PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), "UTF8"));
 			Document doc1 = new Document();
 			doc1.append("command", "REQUEST_HANDSHAKE");
+			doc1.append("message","hahahahah");
 			System.out.println("Command: " + doc1.toJson());
-			output.writeUTF(doc1.toJson());
+			writer.println(doc1.toJson());
+			writer.flush();
+			while(true) {
+				Document msg = Document.parse(reader.readLine());
+				System.out.println("MSG FROM Server: "+msg.toJson());
+			}
+			
 			
 		} catch(IOException e) {
 			e.printStackTrace();
