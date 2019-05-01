@@ -34,9 +34,11 @@ public class ServerMain implements FileSystemObserver {
 		for(String peer:peersList){
 			peersToConnect.add(new HostPort(peer));
 		}
-		// initialize server connection.
-		TCPServer newServer = new TCPServer(serverHost.host,serverHost.port);
-		newServer.start();
+		// ready to listen from peers
+		//TCPServer newServer = new TCPServer(serverHost.host,serverHost.port);
+		//newServer.start();
+		
+		// initialize connection to other peers
 		TCPClient newClient = new TCPClient(peersToConnect,eventQueue);
 		newClient.start();
 		

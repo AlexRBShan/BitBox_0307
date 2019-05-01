@@ -2,6 +2,8 @@ package unimelb.bitbox;
 
 import java.util.logging.Logger;
 import java.util.Queue;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.ArrayList;
 import java.io.*;
 import java.net.Socket;
@@ -11,91 +13,66 @@ import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.Protocol;
+import unimelb.bitbox.ConnectToPeer;
+import unimelb.bitbox.EventProcessor;
 
 public class TCPClient extends Thread{
-	private static Logger log = Logger.getLogger(ClientHandler.class.getName());
+	private static Logger log = Logger.getLogger(TCPClient.class.getName());
+	
 	private ArrayList<HostPort> peersToConnect;
-	private ArrayList<HostPort> peersConnected = new ArrayList<HostPort>();
+	private ArrayList<HostPort> hostConnected;
+	private HashMap<HostPort, Socket> peersConnected;
+	private Queue<HostPort> peersAvailable;
+	
 	private Queue<FileSystemEvent> eventQueue;
+	
 	
 	public TCPClient(ArrayList<HostPort> peersToConnect, Queue<FileSystemEvent> eventQueue) {
 		this.peersToConnect = peersToConnect;
+		this.hostConnected = new ArrayList<HostPort>();
+		this.peersConnected = new HashMap<HostPort, Socket>();
+		this.peersAvailable = new LinkedList<HostPort>();
 		this.eventQueue = eventQueue;
 	}
 	
 	@Override
 	public void run() {
-		for(HostPort peer:peersToConnect) {
-			HostPort connectedPeer = InitPeerConnect(peer);
-			if(!peersConnected.contains(connectedPeer)) {
-				peersConnected.add(connectedPeer);
+		//Initial Connection to all peers
+		for(HostPort peer: peersToConnect) {
+			peersAvailable.add(peer);
+			log.info("trying to connect to peer: " + peer.toString());
+			ConnectToPeer newConnection = new ConnectToPeer(peer);
+			if(newConnection.Connect()) {
+				HostPort newHost = newConnection.getHost();
+				peersConnected.put(newHost, newConnection.getSocket());
+				hostConnected.add(newHost);
 			}
 		}
 		
+		// generate file event to all peers connected
+		while(true) {
+			FileSystemEvent newEvent = eventQueue.poll();
+			for(HostPort host:hostConnected) {
+				Socket socket = peersConnected.get(host);
+				eventprocess(socket, "Hello" + newEvent.toString());
+			}
+		}
 		
 	}
 	
-	// initial peer connections
-	private HostPort InitPeerConnect(HostPort targetPeer){
-		String hostConnected = null;
-		int portConnected = -1;
+	//other functions
+	private void eventprocess(Socket socket, String msg){
 		try {
-			// send handshake to the target peer and get the response document
-			Document handShkRespond = HandshakeConnect(targetPeer);
-		
-			// parsing returned document command
-			switch(handShkRespond.getString("command")) {
-				// Handshake successfully
-			    case "HANDSHAKE_RESPONSE":
-			    	Document serverhost = (Document) handShkRespond.get("hostPort");
-			    	hostConnected = serverhost.getString("host");
-			    	portConnected = serverhost.getInteger("port");
-			    	
-			    // Connection is denied, try to connect from the returned peer list
-			    case "CONNECTION_REFUSED":
-			    	log.info("Connection Rejected by server " + targetPeer.toString());
-			    	@SuppressWarnings("unchecked")
-			    	ArrayList<Document> peersOnList = (ArrayList<Document>) handShkRespond.get("peers");
-			    	
-			    	// loop through all peers returned from server
-			    	for(Document potentialPeer:peersOnList) {
-			    		HostPort potentialHost = new HostPort(potentialPeer.getString("host")
-			    				,potentialPeer.getInteger("port"));
-			    		// connect to the listed peer
-			    		Document newResponce = HandshakeConnect(potentialHost);
-			    		switch(newResponce.getString("command")) {
-			    		    case "HANDSHAKE_RESPONSE":
-					    	    Document newserverhost = (Document) handShkRespond.get("hostPort");
-					    	    hostConnected = newserverhost.getString("host");
-						    	portConnected = newserverhost.getInteger("port");
-			    		    case "CONNECTION_REFUSED":
-			    		    	continue;
-			    		}
-			    	}
-			}
-		} catch(IOException e) {
+			//BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
+			PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
+			
+			writer.println(msg);
+			writer.flush();
+			
+		}catch(IOException e) {
 			e.printStackTrace();
 		}
-		log.info("Successfully handshake with server:" + hostConnected + ":" + portConnected);
-		HostPort peerConnected = new HostPort(hostConnected,portConnected);
-		return peerConnected;
+		
 	}
 	
-	private Document HandshakeConnect(HostPort peer) throws IOException{
-		Socket socket = new Socket(peer.host, peer.port);
-		// create input and output streams for 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-		PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
-		
-		Protocol p = new Protocol();
-		Document handShake = p.HANDSHAKE_REQUEST(peer.host, peer.port);
-		
-		writer.println(handShake.toJson());
-		log.info("Handshake with server " + peer.host + ":" + peer.port);
-		Document handShkRespond = Document.parse(reader.readLine());
-		log.info("Server respond with: " + handShkRespond.toString());
-		socket.close();
-		
-		return handShkRespond;
-	}
 }

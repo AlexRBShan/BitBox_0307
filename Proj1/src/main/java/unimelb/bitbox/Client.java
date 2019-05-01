@@ -1,10 +1,21 @@
 package unimelb.bitbox;
 
 import unimelb.bitbox.util.*;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
+
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.logging.Logger;
 
-public class Client {
+import unimelb.bitbox.*;
+
+public class Client implements FileSystemObserver{
+	private static Logger log = Logger.getLogger(ServerMain.class.getName());
+	protected FileSystemManager fileSystemManager;
+	private Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -13,26 +24,18 @@ public class Client {
 		int portnum = Integer.parseInt(Configuration.getConfigurationValue("port"));
 		String[] peers = Configuration.getConfigurationValue("peers").split(",");
 		String ip = "localhost";
-		
-		try(Socket client = new Socket(ip,portnum)){
-			// create input and output streams for 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream(), "UTF8"));
-			PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream(), "UTF8"));
-			Document doc1 = new Document();
-			doc1.append("command", "REQUEST_HANDSHAKE");
-			doc1.append("message","hahahahah");
-			System.out.println("Command: " + doc1.toJson());
-			writer.println(doc1.toJson());
-			writer.flush();
-			while(true) {
-				Document msg = Document.parse(reader.readLine());
-				System.out.println("MSG FROM Server: "+msg.toJson());
-			}
-			
-			
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
+		HostPort host = new HostPort(ip, portnum);
+		ArrayList<HostPort> peersToConnect = new ArrayList<HostPort>();
+		peersToConnect.add(host);
 	}
-
+	@Override
+	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
+		// TODO: process events
+		System.out.println("found event: " + fileSystemEvent.toString());
+		//store file system event to queue
+		this.eventQueue.offer(fileSystemEvent);
+	}
+	public Queue<FileSystemEvent> getQ(){
+		return this.eventQueue;
+	}
 }

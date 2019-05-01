@@ -9,7 +9,7 @@ import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 
 public class TCPServer implements Runnable {
-	private static Logger log = Logger.getLogger(ClientHandler.class.getName());
+	private static Logger log = Logger.getLogger(TCPServer.class.getName());
 	private Thread thread;
 	private int portNumber;
 	private String hostNmae;
@@ -70,28 +70,6 @@ public class TCPServer implements Runnable {
 		HostPort clientHost = new HostPort(clientIP, clientPort);
 		
 		// if connection is not full, add new peer in
-		if(this.numClientConnected < this.maxClientConnected) {
-			this.peerConnected.add(clientHost.toDoc());
-		}
-		log.info("Client Handler for "+ clientIP + "(" + clientPort +")" + " is running...");
-		
-		try {
-			
-					    
-			// Receive data
-		    while(true){
-		    	if(true){
-		    		Document msg = Document.parse(reader.readLine());
-		    		System.out.println("COMMAND RECEIVED: "+msg.toJson());
-		    		Document response = parse_command(msg);
-		    		System.out.println("MSG TO REPLY	: "+response.toJson());
-		    		writer.println(response.toJson());
-		    		writer.flush();
-		    	}
-		    }
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private Document parse_command(Document doc) {
