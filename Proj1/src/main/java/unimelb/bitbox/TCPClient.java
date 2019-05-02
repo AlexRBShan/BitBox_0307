@@ -72,22 +72,6 @@ public class TCPClient extends Thread{
 	
 	//other functions
 	
-	private void EventProcessor(FileSystemEvent event) {
-		switch(event.event) {
-			case FILE_CREATE:
-				 ;
-			case FILE_DELETE:
-				;
-			case FILE_MODIFY:
-				;
-			case DIRECTORY_CREATE:
-				;
-			case  DIRECTORY_DELETE:
-				;
-		}
-			
-	}
-	
 	private void eventprocess(Socket socket, String msg){
 		try {
 			//BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));

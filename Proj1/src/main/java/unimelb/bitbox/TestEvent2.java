@@ -4,8 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
-import java.util.Queue;
-import java.util.LinkedList;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
@@ -21,6 +19,7 @@ public class TestEvent2 implements FileSystemObserver{
 	
 	public TestEvent2() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager("testReceive",this);
+		
 		try {
 			ServerSocket server = new ServerSocket(4444);
 			while(true) {
@@ -31,9 +30,6 @@ public class TestEvent2 implements FileSystemObserver{
 				Document rec = Document.parse(reader.readLine());
 				EventProcess ep = new EventProcess(fileSystemManager);
 				
-				switch(rec.getString("command")) {
-				case "FILE_CREATE_REQUEST":
-					ep.fileCreateResponse(rec);
 				}
 				
 			}

@@ -22,12 +22,27 @@ public class EventProcessor {
 	private FileSystemManager fileSystemManager; 
 	private FileSystemEvent eventToHandle;
 	private Socket socket;
+	private boolean isComplete;
     
     
     public EventProcessor(FileSystemManager fileSystemManager,FileSystemEvent eventToHandle,Socket socket) {
     	this.eventToHandle = eventToHandle;
     	this.fileSystemManager = fileSystemManager;
     	this.socket = socket;
+    	this.isComplete = false;
+    	
+    	switch(eventToHandle.event) {
+    	case FILE_CREATE:
+			 ;
+		case FILE_DELETE:
+			;
+		case FILE_MODIFY:
+			;
+		case DIRECTORY_CREATE:
+			;
+		case  DIRECTORY_DELETE:
+			;
+    	}
     }
     
     private void processFileCreate() {
