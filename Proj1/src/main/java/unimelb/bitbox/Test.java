@@ -37,6 +37,13 @@ class ThreadDemo extends Thread {
 	public class Test {
 
 	   public static void main(String args[]) {
+		   System.out.println(PeerStatistics.numPeersConnection);
+		   
+		   PeerStatistics.numPeersConnection++;
+		   
+		   System.out.println(PeerStatistics.numPeersConnection);
+		   
+		   /*
 	      ThreadDemo T1 = new ThreadDemo( "Thread-1");
 	      T1.start();
 	      
@@ -46,5 +53,6 @@ class ThreadDemo extends Thread {
 	      for(int i =0; i < 100; i++) {
 	    	  System.out.println("################");
 	      }
+	      */
 	   }   
 	}

@@ -19,7 +19,7 @@ import unimelb.bitbox.util.HostPort;
 public class ServerMain implements FileSystemObserver {
 	private static Logger log = Logger.getLogger(ServerMain.class.getName());
 	protected FileSystemManager fileSystemManager;
-	Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
+	//Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
@@ -38,9 +38,14 @@ public class ServerMain implements FileSystemObserver {
 		//TCPServer newServer = new TCPServer(serverHost.host,serverHost.port);
 		//newServer.start();
 		
+		for(FileSystemEvent event:fileSystemManager.generateSyncEvents()) {
+			PeerStatistics.eventQueue.offer(event);
+		}
+		
 		// initialize connection to other peers
-		TCPClient newClient = new TCPClient(peersToConnect,eventQueue);
+		TCPClient newClient = new TCPClient(peersToConnect,PeerStatistics.eventQueue);
 		newClient.start();
+		
 		
 	}
 
@@ -49,7 +54,8 @@ public class ServerMain implements FileSystemObserver {
 		// TODO: process events
 		System.out.println("found event: " + fileSystemEvent.toString());
 		//store file system event to queue
-		eventQueue.offer(fileSystemEvent);
+		PeerStatistics.eventQueue.offer(fileSystemEvent);
+		System.out.println("size of event: " + PeerStatistics.eventQueue.size());
 	}
 	
 }

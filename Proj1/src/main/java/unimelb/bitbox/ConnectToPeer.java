@@ -40,17 +40,20 @@ public class ConnectToPeer{
 				log.info("Trying to Handshake with peer " + peer.host + ":" + peer.port);
 				
 				Document hskResponse = Document.parse(reader.readLine());
-				log.info("Server respond with: " + hskResponse.toString());
-				
+				log.info("Server respond with: " + hskResponse.toJson());
+				System.out.println("Response: " + hskResponse.toJson());
+
 				// parsing returned document command
 				switch(hskResponse.getString("command")) {
 					// Handshake successfully
 				    case "HANDSHAKE_RESPONSE":
 				    	Document serverhost = (Document) hskResponse.get("hostPort");
-				    	String targetHost = serverhost.getString("host");
-				    	int targetPort = serverhost.getInteger("port");
-				    	this.targetPeer = new HostPort(targetHost,targetPort);
+				    	System.out.println(serverhost.toJson());
+				    	HostPort hostReturned = new HostPort(serverhost);
+				    	// this.targetPeer = new HostPort(targetHost,targetPort);
+				    	this.targetPeer = hostReturned;
 				    	this.mySocket = socket;
+				    	log.info("peer " + targetPeer.toString() + " is connected!");
 				    	return true;
 				    // Connection is denied, retrieve possible target peers
 				    case "CONNECTION_REFUSED":

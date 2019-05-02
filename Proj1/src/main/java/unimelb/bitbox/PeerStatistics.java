@@ -3,7 +3,11 @@ package unimelb.bitbox;
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
+
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class PeerStatistics {
 	// number of peers connected
@@ -14,7 +18,8 @@ public class PeerStatistics {
 	// list of peers connection
 	private static ArrayList<HostPort> peerList = new ArrayList<HostPort>();
 	
-	
+	// event Queue;
+	public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 	
 	// add a peer not already connected to peer list
 	public static boolean addPeer(HostPort peerNew) {

@@ -48,24 +48,51 @@ public class TCPClient extends Thread{
 				hostConnected.add(newHost);
 			}
 		}
-		
 		// generate file event to all peers connected
 		while(true) {
-			FileSystemEvent newEvent = eventQueue.poll();
-			for(HostPort host:hostConnected) {
-				Socket socket = peersConnected.get(host);
-				eventprocess(socket, "Hello" + newEvent.toString());
+			try {
+				this.sleep(1000);
+				System.out.println("size of event: " + PeerStatistics.eventQueue.size());
+				while(!PeerStatistics.eventQueue.isEmpty()) {
+					//FileSystemEvent newEvent = FILE_CREATE;
+					FileSystemEvent newEvent = PeerStatistics.eventQueue.poll();
+					for(HostPort host:hostConnected) {
+						Socket socket = peersConnected.get(host);
+						log.info("###sending event: " + newEvent.toString());
+						eventprocess(socket, "Hello" + newEvent.toString());
+					}
+				}
+			}catch(InterruptedException e) {
+				e.printStackTrace();
 			}
+			
 		}
 		
 	}
 	
 	//other functions
+	
+	private void EventProcessor(FileSystemEvent event) {
+		switch(event.event) {
+			case FILE_CREATE:
+				 ;
+			case FILE_DELETE:
+				;
+			case FILE_MODIFY:
+				;
+			case DIRECTORY_CREATE:
+				;
+			case  DIRECTORY_DELETE:
+				;
+		}
+			
+	}
+	
 	private void eventprocess(Socket socket, String msg){
 		try {
 			//BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
 			PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
-			
+			System.out.println("message to be sent: " + msg);
 			writer.println(msg);
 			writer.flush();
 			
