@@ -43,7 +43,7 @@ public class ServerMain implements FileSystemObserver {
 		}
 		
 		// initialize connection to other peers
-		TCPClient newClient = new TCPClient(peersToConnect,PeerStatistics.eventQueue);
+		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerStatistics.eventQueue);
 		newClient.start();
 		
 		

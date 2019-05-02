@@ -12,13 +12,14 @@ import java.net.SocketException;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 import unimelb.bitbox.util.Document;
+import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.Protocol;
 import unimelb.bitbox.ConnectToPeer;
 import unimelb.bitbox.EventProcessor;
 
 public class TCPClient extends Thread{
 	private static Logger log = Logger.getLogger(TCPClient.class.getName());
-	
+	private FileSystemManager fileSystemManager;
 	private ArrayList<HostPort> peersToConnect;
 	private ArrayList<HostPort> hostConnected;
 	private HashMap<HostPort, Socket> peersConnected;
@@ -27,7 +28,8 @@ public class TCPClient extends Thread{
 	private Queue<FileSystemEvent> eventQueue;
 	
 	
-	public TCPClient(ArrayList<HostPort> peersToConnect, Queue<FileSystemEvent> eventQueue) {
+	public TCPClient(FileSystemManager fileSystemManager, ArrayList<HostPort> peersToConnect, Queue<FileSystemEvent> eventQueue) {
+		this.fileSystemManager = fileSystemManager;
 		this.peersToConnect = peersToConnect;
 		this.hostConnected = new ArrayList<HostPort>();
 		this.peersConnected = new HashMap<HostPort, Socket>();
@@ -59,29 +61,14 @@ public class TCPClient extends Thread{
 					for(HostPort host:hostConnected) {
 						Socket socket = peersConnected.get(host);
 						log.info("###sending event: " + newEvent.toString());
-						eventprocess(socket, "Hello" + newEvent.toString());
+						EventProcessor ep = new EventProcessor(this.fileSystemManager, newEvent, socket);
+						ep.start();
 					}
 				}
 			}catch(InterruptedException e) {
 				e.printStackTrace();
 			}
 			
-		}
-		
-	}
-	
-	//other functions
-	
-	private void eventprocess(Socket socket, String msg){
-		try {
-			//BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-			PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
-			System.out.println("message to be sent: " + msg);
-			writer.println(msg);
-			writer.flush();
-			
-		}catch(IOException e) {
-			e.printStackTrace();
 		}
 		
 	}

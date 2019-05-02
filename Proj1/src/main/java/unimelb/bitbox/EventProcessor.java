@@ -45,14 +45,19 @@ public class EventProcessor extends Thread{
     	switch(eventToHandle.event) {
     	case FILE_CREATE:
     		processFileCreate();
+    		break;
 		case FILE_DELETE:
 			processFileDelete();
+			break;
 		case FILE_MODIFY:
 			processFileModify();
+			break;
 		case DIRECTORY_CREATE:
 			processDirectoryCreate();
+			break;
 		case  DIRECTORY_DELETE:
 			processDirectoryDelete();
+			break;
     	}
     	
     	log.info("Event Process ended.");
@@ -113,9 +118,11 @@ public class EventProcessor extends Thread{
 						log.info("File delete fail on remote peer with message: " + docRec.getString("message"));
 						continue;
 					}
+					break;
 				default:
 					log.info("Expecting FILE_DELETE_RESPONSE, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
+					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -142,9 +149,11 @@ public class EventProcessor extends Thread{
 						log.info("File modify fail on remote peer with message: " + docRec.getString("message"));
 						this.isComplete = true;
 					}
+					break;
 				default:
 					log.info("Expecting DIRECTORY_CREATE_RESPONSE, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
+					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -176,9 +185,11 @@ public class EventProcessor extends Thread{
 						log.info("Directory create fail on remote server, waiting for a success response");
 						continue;
 					}
+					break;
 				default:
 					log.info("Expecting DIRECTORY_CREATE_RESPONSE, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
+					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -204,9 +215,11 @@ public class EventProcessor extends Thread{
 						log.info("Directory delete fail on remote server, waiting for a success response");
 						continue;
 					}
+					break;
 				default:
 					log.info("Expecting DIRECTORY_DELETE_RESPONSE, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
+					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block
@@ -244,9 +257,11 @@ public class EventProcessor extends Thread{
 							}
 						}
 					}
+					break;
 				default:
 					log.info("Expecting FILE_BYTE_REQUEST, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
+					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block

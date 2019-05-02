@@ -42,20 +42,28 @@ public class RequestProcessor extends Thread{
 		case "HANDSHAKE_REQUEST":
 			// Can possible move handshake request also here.
 			processHandshake();
+			break;
 		case "FILE_CREATE_REQUEST":
 			processFileCreate();
+			break;
 		case "FILE_DELETE_REQUEST":
 			processFileDelete();
+			break;
 		case "FILE_MODIFY_REQUEST":
 			processFileModify();
+			break;
 		case "DIRECTORY_CREATE_REQUEST":
 			processDirectoryCreate();
+			break;
 		case "DIRECTORY_DELETE_REQUEST":
 			processDirectoryDelete();
+			break;
 		case "FILE_BYTE_RESPONSE":
 			processFileByte();
+			break;
 		default:
 			processInvalid();
+			break;
 		}
 		
 		
