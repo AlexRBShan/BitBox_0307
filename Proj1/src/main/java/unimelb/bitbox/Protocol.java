@@ -4,13 +4,14 @@ import java.util.ArrayList;
 
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
+import unimelb.bitbox.util.FileSystemManager.FileDescriptor;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
-import unimelb.bitbox.util.FileSystemManager.FileDescriptor;;
 
 public class Protocol {
 
+
 	// Invalid Protocol
-	public Document INVALID_PROTOCOL(String msg) {
+	static public Document INVALID_PROTOCOL(String msg) {
 		Document doc = new Document();
 		doc.append("command","INVALID_PROTOCOL");
 		doc.append("message", msg);		
@@ -18,19 +19,19 @@ public class Protocol {
 	}
 
 	// Handshake related protocols
-	public Document HANDSHAKE_REQUEST(HostPort peer) {
+	static public Document HANDSHAKE_REQUEST(HostPort peer) {
 		Document doc = new Document();
 		doc.append("command", "HANDSHAKE_REQUEST");
 		doc.append("hostport", peer.toDoc());
 		return doc;
 	}
-	public Document HANDSHAKE_RESPONSE(HostPort peer) {
+	static public Document HANDSHAKE_RESPONSE(HostPort peer) {
 		Document doc = new Document();
 		doc.append("command", "HANDSHAKE_REQUEST");
 		doc.append("hostport", peer.toDoc());
 		return doc;
 	}
-	public Document CONNECTION_REFUSED(ArrayList<Document> peerList) {	
+	static public Document CONNECTION_REFUSED(ArrayList<Document> peerList) {	
 		Document doc = new Document();
 		doc.append("command", "CONNECTION_REFUSED");
 		doc.append("message", "connection limit reached");
@@ -39,15 +40,21 @@ public class Protocol {
 	}
 	
 	// File Related Protocols
-	public Document FILE_CREATE_REQUEST(FileDescriptor fileDescriptor, String pathName) {
+	
+	
+	
+	static public Document FILE_CREATE_REQUEST(FileDescriptor fileDescriptor, String pathName) {
+		System.out.println("pathName:"+pathName);
 		Document doc = new Document();
 		doc.append("command", "FILE_CREATE_REQUEST");
 		doc.append("fileDescriptor", fileDescriptor.toDoc());
 		doc.append("pathName", pathName);
 		return doc;
-		
 	}
-	public Document FILE_CREATE_RESPONSE(Document request, String msg, boolean status) {
+	
+	
+	
+	static public Document FILE_CREATE_RESPONSE(Document request, String msg, boolean status) {
 		Document fileDescriptor = (Document) request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
@@ -59,7 +66,7 @@ public class Protocol {
 		return doc;
 	}
 	
-	public Document FILE_BYTES_REQUEST(Document request, long position, long length) {
+	static public Document FILE_BYTES_REQUEST(Document request, long position, long length) {
 		Document fileDescriptor = (Document) request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
@@ -71,7 +78,7 @@ public class Protocol {
 		return doc;
 		
 	}
-	public Document FILE_BYTES_RESPONSE(Document request,String content, String message, Boolean status) {
+	static public Document FILE_BYTES_RESPONSE(Document request,String content, String message, Boolean status) {
 		Document fileDescriptor = (Document)request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		long position = request.getLong("position");
@@ -87,14 +94,14 @@ public class Protocol {
 		doc.append("status", status);
 		return doc;
 	}
-	public Document FILE_DELETE_REQUEST(FileDescriptor fileDescriptor, String pathName) {
+	static public Document FILE_DELETE_REQUEST(FileDescriptor fileDescriptor, String pathName) {
 		Document doc2 = new Document();
 		doc2.append("command", "FILE_DELETE_REQUEST");
 		doc2.append("fileDescriptor", fileDescriptor.toDoc());
 		doc2.append("pathName", pathName);
 		return doc2;
 	}
-	public Document FILE_DELETE_RESPONSE(Document request, String message, boolean status) {
+	static public Document FILE_DELETE_RESPONSE(Document request, String message, boolean status) {
 		Document fileDescriptor = (Document)request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
@@ -105,14 +112,14 @@ public class Protocol {
 		doc.append("status", status);
 		return doc;
 	}
-	public Document FILE_MODIFY_REQUEST(FileDescriptor fileDescriptor, String pathName) {
+	static public Document FILE_MODIFY_REQUEST(FileDescriptor fileDescriptor, String pathName) {
 		Document doc = new Document();
 		doc.append("command", "FILE_MODIFY_REQUEST");
 		doc.append("fileDescriptor", fileDescriptor.toDoc());
 		doc.append("pathName", pathName);
 		return doc;
 	}
-	public Document FILE_MODIFY_RESPONSE(Document request, String message, boolean status) {
+	static public Document FILE_MODIFY_RESPONSE(Document request, String message, boolean status) {
 		Document fileDescriptor = (Document)request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
@@ -123,13 +130,13 @@ public class Protocol {
 		doc.append("status", status);
 		return doc;
 	}
-	public Document DIRECTORY_CREATE_REQUEST(String pathName) {
+	static public Document DIRECTORY_CREATE_REQUEST(String pathName) {
 		Document doc = new Document();
 		doc.append("command", "DIRECTORY_CREATE_REQUEST");
 		doc.append("pathName", pathName);
 		return doc;
 	}
-	public Document DIRECTORY_CREATE_RESPONSE(Document request, String message, Boolean status) {
+	static public Document DIRECTORY_CREATE_RESPONSE(Document request, String message, Boolean status) {
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
 		doc.append("command", "DIRECTORY_CREATE_RESPONSE");
@@ -138,13 +145,13 @@ public class Protocol {
 		doc.append("status", status);
 		return doc;
 	}
-	public Document DIRECTORY_DELETE_REQUEST(String pathName) {
+	static public Document DIRECTORY_DELETE_REQUEST(String pathName) {
 		Document doc = new Document();
 		doc.append("command", "DIRECTORY_DELETE_REQUEST");
 		doc.append("pathName", pathName);
 		return doc;
 	}
-	public Document DIRECTORY_DELETE_RESPONSE(Document request, String message, Boolean status) {
+	static public Document DIRECTORY_DELETE_RESPONSE(Document request, String message, Boolean status) {
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
 		doc.append("command", "DIRECTORY_DELETE_RESPONSE");

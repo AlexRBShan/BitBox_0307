@@ -16,12 +16,14 @@ public class ConnectToPeer{
 	HostPort targetPeer;
 	private Queue<HostPort> peersAvailable; 
 	private Socket mySocket;
+	private Protocol protocol;
 	
 	public ConnectToPeer(HostPort targetPeer) {
 		this.targetPeer = targetPeer;
 		this.peersAvailable = new LinkedList<HostPort>();
 		this.peersAvailable.offer(targetPeer);
 		this.mySocket = null;
+		this.protocol = new Protocol();
 	}
 	
 	public boolean Connect(){
@@ -33,8 +35,7 @@ public class ConnectToPeer{
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
 				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
 				
-				Protocol p = new Protocol();
-				Document hskRequest = p.HANDSHAKE_REQUEST(peer.host, peer.port);
+				Document hskRequest = protocol.HANDSHAKE_REQUEST(peer);
 				writer.println(hskRequest.toJson());
 				writer.flush();
 				log.info("Trying to Handshake with peer " + peer.host + ":" + peer.port);

@@ -10,8 +10,6 @@ import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
-import unimelb.bitbox.EventProcess;
-import unimelb.bitbox.Protocol;
 
 public class TestEvent2 implements FileSystemObserver{
 	private static Logger log = Logger.getLogger(ServerMain.class.getName());
@@ -21,19 +19,18 @@ public class TestEvent2 implements FileSystemObserver{
 		fileSystemManager=new FileSystemManager("testReceive",this);
 		
 		try {
+			@SuppressWarnings("resource")
 			ServerSocket server = new ServerSocket(4444);
 			while(true) {
+				System.out.println("Server ready for listenning...");
 				Socket socket = server.accept();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
-				
-				Document rec = Document.parse(reader.readLine());
-				EventProcess ep = new EventProcess(fileSystemManager);
-				
+				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"), true);
+				while(true) {
+					Document rec = Document.parse(reader.readLine());
+					System.out.println(rec.toJson());
 				}
-				
-			}
-			
+			}		
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
