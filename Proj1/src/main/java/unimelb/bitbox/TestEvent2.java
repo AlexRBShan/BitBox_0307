@@ -29,6 +29,8 @@ public class TestEvent2 implements FileSystemObserver{
 				while(true) {
 					Document rec = Document.parse(reader.readLine());
 					System.out.println(rec.toJson());
+					RequestProcessor requestProcessor = new RequestProcessor(this.fileSystemManager, rec, socket);
+					requestProcessor.start();
 				}
 			}		
 		}catch(IOException e) {
