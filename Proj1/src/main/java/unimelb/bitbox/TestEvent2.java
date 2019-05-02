@@ -28,7 +28,8 @@ public class TestEvent2 implements FileSystemObserver{
 				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"), true);
 				while(true) {
 					Document rec = Document.parse(reader.readLine());
-					System.out.println(rec.toJson());
+					System.out.println("command is: " + rec.getString("command"));
+					System.out.println("Json: " + rec.toJson());
 					RequestProcessor requestProcessor = new RequestProcessor(this.fileSystemManager, rec, socket);
 					requestProcessor.start();
 				}

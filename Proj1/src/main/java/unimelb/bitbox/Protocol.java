@@ -44,7 +44,6 @@ public class Protocol {
 	
 	
 	static public Document FILE_CREATE_REQUEST(FileDescriptor fileDescriptor, String pathName) {
-		System.out.println("pathName:"+pathName);
 		Document doc = new Document();
 		doc.append("command", "FILE_CREATE_REQUEST");
 		doc.append("fileDescriptor", fileDescriptor.toDoc());

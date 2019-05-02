@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class PeerStatistics {
+	// blockSize
+	public static long blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
 	// number of peers connected
 	public static int numPeersConnection = 0;
 	// max number of peers connected

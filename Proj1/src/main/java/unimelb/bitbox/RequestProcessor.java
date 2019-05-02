@@ -67,49 +67,97 @@ public class RequestProcessor extends Thread{
 	
 	private void processFileCreate() {
 		log.info("Start Processing File Create: " + this.request.getString("pathName"));
-		;
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.fileCreateResponse(this.request);
+		// send result to remote peer
+		writer.println(result.toJson());
+		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
+			requestFileByte(result);
+		}
+		this.isComplete = true;
 	}
 	
 	private void processFileDelete() {
 		log.info("Start Processing File Delete: " + this.request.getString("pathName"));
-		;
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.fileDeleteResponse(this.request);
+		if(result.getBoolean("status")) {
+			log.info("Success delete file: " + this.request.getString("pathName"));
+		}
+		
+		writer.println(result.toJson());
+		this.isComplete = true;;
 	}
 	
 	private void processFileModify() {
 		log.info("Start Processing File Modify: " + this.request.getString("pathName"));
-		;
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.fileModifyResponse(this.request);
+		// send result to remote peer
+		writer.println(result.toJson());
+		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
+			requestFileByte(result);
+		}
+		
+		this.isComplete = true;
 	}
 	
 	private void processDirectoryCreate() {
 		log.info("Start Processing Directory Create: " + this.request.getString("pathName"));
-		while(!isComplete) {
-			RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
-			Document result = requestOperator.directoryCreateResponse(this.request);
-			if(result.getBoolean("status")) {
-				this.isComplete = true;
-			}
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.directoryCreateResponse(this.request);
+		if(result.getBoolean("status")) {
+			log.info("Success create directory: " + this.request.getString("pathName"));
 		}
+		writer.println(result.toJson());
+		this.isComplete = true;
 	}
 	
 	private void processDirectoryDelete() {
 		log.info("Start Processing Directory Delete: " + this.request.getString("pathName"));
-		while(!isComplete) {
-			RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
-			Document result = requestOperator.directoryDeleteResponse(this.request);
-			if(result.getBoolean("status")) {
-				this.isComplete = true;
-			}
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.directoryDeleteResponse(this.request);
+		if(result.getBoolean("status")) {
+			log.info("Success delete directory: " + this.request.getString("pathName"));
 		}
 		
+		writer.println(result.toJson());
+		this.isComplete = true;
 	}
 	
 	private void processFileByte() {
-		;
+		log.info("Start Processing File Byte Response: " + this.request.getString("pathName"));
+		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		Document result = requestOperator.fileByteRequest(this.request);
+		long length = result.getLong("length");
+		if(length !=0) {
+			// send result to remote peer
+			writer.println(result.toJson());
+		}else {
+			log.info("File fully load");
+		}
+		this.isComplete = true;
 	}
 	
 	private void processInvalid() {
-		
+		log.info("Invalid Protocol detected");
 	}
-
+	
+	private void requestFileByte(Document result) {
+		// proceed to send byte request
+		Document fileDescriptor = (Document) this.request.get("fileDescriptor");
+		long fileSize = fileDescriptor.getLong("fileSize");
+		long length = 0;
+		if(fileSize >= PeerStatistics.blockSize) {
+			length = PeerStatistics.blockSize;
+		}else {
+			length = fileSize;
+		}
+		
+		// send FILE_BYTE_REQUEST to remote peer
+		Document docToSend = Protocol.FILE_BYTES_REQUEST(this.request, 0, length);
+		writer.println(docToSend.toJson());			
+	}
+	
 
 }

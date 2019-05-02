@@ -77,7 +77,7 @@ public class EventProcessor extends Thread{
 						break;
 					}else {
 						log.info("File Request fail on remote peer with message: " + docRec.getString("message"));
-						continue;
+						this.isComplete = true;
 					}
 				default:
 					log.info("Expecting FILE_CREATE_RESPONSE, Receiving " + command +", stop sending file");
@@ -140,7 +140,7 @@ public class EventProcessor extends Thread{
 						break;
 					}else {
 						log.info("File modify fail on remote peer with message: " + docRec.getString("message"));
-						continue;
+						this.isComplete = true;
 					}
 				default:
 					log.info("Expecting DIRECTORY_CREATE_RESPONSE, Receiving " + command +", stop event sharing");
