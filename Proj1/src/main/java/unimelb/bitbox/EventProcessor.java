@@ -66,7 +66,6 @@ public class EventProcessor extends Thread{
     // process functions for each event type
     
     private void processFileCreate() {
-    	System.out.println("Test - Handling file create");
     	Document docToSend = Protocol.FILE_CREATE_REQUEST(eventToHandle.fileDescriptor, eventToHandle.pathName);
     	writer.println(docToSend.toJson());
     	
@@ -75,10 +74,12 @@ public class EventProcessor extends Thread{
     		try {
 				Document docRec = Document.parse(reader.readLine());
 				String command = docRec.getString("command");
+				
+				/*
 				switch(command) {
 				case "FILE_CREATE_RESPONSE":
 					if(docRec.getBoolean("status")) {
-						log.info("File Request success on remote peer, waiting for FILE_BYTE_REQUEST");
+						log.info("File Request success on remote peer, waiting for FILE_BYTES_REQUEST");
 						break;
 					}else {
 						log.info("File Request fail on remote peer with message: " + docRec.getString("message"));
@@ -88,13 +89,28 @@ public class EventProcessor extends Thread{
 					log.info("Expecting FILE_CREATE_RESPONSE, Receiving " + command +", stop sending file");
 					this.isComplete = true;
 					break;
-				}	
+				}
+				*/	
+				if(command.equals("FILE_CREATE_RESPONSE")) {
+					if(docRec.getBoolean("status")) {
+						log.info("File Request success on remote peer, waiting for FILE_BYTES_REQUEST");
+						break;
+					}else {
+						log.info("File Request fail on remote peer with message: " + docRec.getString("message"));
+						this.isComplete = true;
+					}
+				}else {
+					log.info("Expecting FILE_CREATE_RESPONSE, Receiving " + command +", stop sending file");
+					this.isComplete = true;
+					break;
+				}
+				
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     	}
-    	
+
     	// start file byte operations
     	if(!isComplete) {
     		processFileByte();
@@ -229,13 +245,14 @@ public class EventProcessor extends Thread{
     }
     
     private void processFileByte() {
+    	log.info("Processing FileByte");
     	while(!isComplete) {
     		try {
     			Document docRec = Document.parse(reader.readLine());
 				String command = docRec.getString("command");
 				
 				switch(command) {
-				case "FILE_BYTE_REQUEST":
+				case "FILE_BYTES_REQUEST":
 					boolean readStatus = false;
 					while(!readStatus) {
 						// send the request to fileOperator to read file
@@ -259,7 +276,7 @@ public class EventProcessor extends Thread{
 					}
 					break;
 				default:
-					log.info("Expecting FILE_BYTE_REQUEST, Receiving " + command +", stop event sharing");
+					log.info("Expecting FILE_BYTES_REQUEST, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
 					break;
 				}

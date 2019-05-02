@@ -23,7 +23,7 @@ public class TestEvent1 implements FileSystemObserver {
 	private PrintWriter writer;
 	
 	public TestEvent1() throws NumberFormatException, IOException, NoSuchAlgorithmException {
-		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
+		fileSystemManager=new FileSystemManager("share",this);
 		this.socket = new Socket("localhost", 4444);
 		this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
 		this.writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"), true);

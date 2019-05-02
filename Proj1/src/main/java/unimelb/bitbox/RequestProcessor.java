@@ -10,7 +10,6 @@ import java.net.Socket;
 
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class RequestProcessor extends Thread{
 	private static Logger log = Logger.getLogger(RequestProcessor.class.getName());
@@ -58,7 +57,7 @@ public class RequestProcessor extends Thread{
 		case "DIRECTORY_DELETE_REQUEST":
 			processDirectoryDelete();
 			break;
-		case "FILE_BYTE_RESPONSE":
+		case "FILE_BYTES_RESPONSE":
 			processFileByte();
 			break;
 		default:
@@ -74,9 +73,11 @@ public class RequestProcessor extends Thread{
 	}
 	
 	private void processFileCreate() {
+		System.out.println("processFileCreate() "+this.request.toJson());
 		log.info("Start Processing File Create: " + this.request.getString("pathName"));
 		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
 		Document result = requestOperator.fileCreateResponse(this.request);
+
 		// send result to remote peer
 		writer.println(result.toJson());
 		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
@@ -162,8 +163,9 @@ public class RequestProcessor extends Thread{
 			length = fileSize;
 		}
 		
-		// send FILE_BYTE_REQUEST to remote peer
+		// send FILE_BYTES_REQUEST to remote peer
 		Document docToSend = Protocol.FILE_BYTES_REQUEST(this.request, 0, length);
+
 		writer.println(docToSend.toJson());			
 	}
 	

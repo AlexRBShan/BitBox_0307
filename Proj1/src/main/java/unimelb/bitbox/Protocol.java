@@ -22,13 +22,13 @@ public class Protocol {
 	static public Document HANDSHAKE_REQUEST(HostPort peer) {
 		Document doc = new Document();
 		doc.append("command", "HANDSHAKE_REQUEST");
-		doc.append("hostport", peer.toDoc());
+		doc.append("hostPort", peer.toDoc());
 		return doc;
 	}
 	static public Document HANDSHAKE_RESPONSE(HostPort peer) {
 		Document doc = new Document();
-		doc.append("command", "HANDSHAKE_REQUEST");
-		doc.append("hostport", peer.toDoc());
+		doc.append("command", "HANDSHAKE_RESPONSE");
+		doc.append("hostPort", peer.toDoc());
 		return doc;
 	}
 	static public Document CONNECTION_REFUSED(ArrayList<Document> peerList) {	
@@ -57,7 +57,7 @@ public class Protocol {
 		Document fileDescriptor = (Document) request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		Document doc = new Document();
-		doc.append("command", "FILE_CREATE_REQUEST");
+		doc.append("command", "FILE_CREATE_RESPONSE");
 		doc.append("fileDescriptor", fileDescriptor);
 		doc.append("pathName", pathName);
 		doc.append("message",msg);

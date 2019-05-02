@@ -54,7 +54,6 @@ public class TCPClient extends Thread{
 		while(true) {
 			try {
 				this.sleep(1000);
-				System.out.println("size of event: " + PeerStatistics.eventQueue.size());
 				while(!PeerStatistics.eventQueue.isEmpty()) {
 					//FileSystemEvent newEvent = FILE_CREATE;
 					FileSystemEvent newEvent = PeerStatistics.eventQueue.poll();
