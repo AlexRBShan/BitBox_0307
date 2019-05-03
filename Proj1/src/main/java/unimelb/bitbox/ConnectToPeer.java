@@ -80,6 +80,7 @@ public class ConnectToPeer{
 				}
 			} catch(IOException e) {
 				e.printStackTrace();
+				return false;
 			}	
 		}
 		return false;
