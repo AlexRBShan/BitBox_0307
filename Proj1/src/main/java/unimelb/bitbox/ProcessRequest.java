@@ -56,8 +56,26 @@ public class ProcessRequest extends Thread{
 		case "DIRECTORY_DELETE_REQUEST":
 			processDirectoryDelete();
 			break;
+		case "FILE_BYTES_REQUEST":
+			processFileByteRequest();
+			break;
 		case "FILE_BYTES_RESPONSE":
 			processFileByte();
+			break;
+		case "FILE_CREATE_RESPONSE":
+			processResponse();
+			break;
+		case "FILE_DELETE_RESPONSE":
+			processResponse();
+			break;
+		case "FILE_MODIFY_RESPONSE":
+			processResponse();
+			break;
+		case "DIRECTORY_CREATE_RESPONSE":
+			processResponse();
+			break;
+		case "DIRECTORY_DELETE_RESPONSE":
+			processResponse();
 			break;
 		default:
 			processInvalid();
@@ -65,6 +83,42 @@ public class ProcessRequest extends Thread{
 		}
 		
 		
+	}
+	
+	private void processFileByteRequest() {
+		log.info("File bytes request from remote peer for " + this.request.getString("pathName"));
+		boolean readStatus = false;
+		while(!readStatus) {
+			// send the request to fileOperator to read file
+			RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
+			Document result = requestOperator.fileByteResponse(this.request);
+			// if the file read success
+			readStatus = result.getBoolean("status");
+			if(readStatus) {
+				// success reading file
+				// send the FILE BYTE to remote peer
+				writer.println(result.toJson());
+				// check if whole file has been sent
+				long fileSize = ((Document) result.get("fileDescriptor")).getLong("fileSize");
+				long position = result.getLong("position");
+				long length = result.getLong("length");
+				if(position + length == fileSize) {
+					log.info("File fully sent out to remote peer, total size: " + fileSize);
+				}
+			}
+		}
+	}
+	
+	private void processResponse() {
+		String message = this.request.getString("message");
+		boolean status = this.request.getBoolean("status");
+		String result = "";
+		if(status) {
+			result = "success";
+		}else {
+			result = "fail";
+		}
+		log.info("Response from peer " + this.command +" "+ result +" with message: " + message);
 	}
 	
 	private void processHandshake() {
