@@ -40,14 +40,12 @@ public class ConnectToPeer{
 				
 				Document hskResponse = Document.parse(reader.readLine());
 				log.info("Server respond with: " + hskResponse.toJson());
-				System.out.println("Response: " + hskResponse.toJson());
 
 				// parsing returned document command
 				switch(hskResponse.getString("command")) {
 					// Handshake successfully
 				    case "HANDSHAKE_RESPONSE":
 				    	Document serverhost = (Document) hskResponse.get("hostPort");
-				    	System.out.println(serverhost.toJson());
 				    	HostPort hostReturned = new HostPort(serverhost);
 				    	// this.targetPeer = new HostPort(targetHost,targetPort);
 				    	this.targetPeer = hostReturned;

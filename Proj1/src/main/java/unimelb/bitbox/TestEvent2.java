@@ -30,7 +30,7 @@ public class TestEvent2 implements FileSystemObserver{
 					Document rec = Document.parse(reader.readLine());
 					System.out.println("command is: " + rec.getString("command"));
 					System.out.println("Json: " + rec.toJson());
-					RequestProcessor requestProcessor = new RequestProcessor(this.fileSystemManager, rec, socket);
+					ProcessRequest requestProcessor = new ProcessRequest(this.fileSystemManager, rec, socket);
 					requestProcessor.start();
 				}
 			}		

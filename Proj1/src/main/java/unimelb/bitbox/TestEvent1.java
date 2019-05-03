@@ -33,7 +33,7 @@ public class TestEvent1 implements FileSystemObserver {
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		System.out.println("Found Event: " + fileSystemEvent);
 		
-		EventProcessor ep = new EventProcessor(this.fileSystemManager, fileSystemEvent, this.socket);
+		ProcessEvent ep = new ProcessEvent(this.fileSystemManager, fileSystemEvent, this.socket);
 		ep.start();
 	}
 

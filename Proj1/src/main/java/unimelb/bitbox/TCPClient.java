@@ -15,7 +15,7 @@ import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.Protocol;
 import unimelb.bitbox.ConnectToPeer;
-import unimelb.bitbox.EventProcessor;
+import unimelb.bitbox.ProcessEvent;
 
 public class TCPClient extends Thread{
 	private static Logger log = Logger.getLogger(TCPClient.class.getName());
@@ -59,8 +59,7 @@ public class TCPClient extends Thread{
 					FileSystemEvent newEvent = PeerStatistics.eventQueue.poll();
 					for(HostPort host:hostConnected) {
 						Socket socket = peersConnected.get(host);
-						log.info("###sending event: " + newEvent.toString());
-						EventProcessor ep = new EventProcessor(this.fileSystemManager, newEvent, socket);
+						ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, socket);
 						ep.start();
 					}
 				}

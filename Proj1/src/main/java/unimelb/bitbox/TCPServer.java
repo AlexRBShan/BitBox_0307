@@ -33,7 +33,7 @@ public class TCPServer extends Thread {
 				PeerStatistics.numPeersConnection++;
 				//Thread t = new Thread(() -> serveClient(clientSocket));
 				//t.start();
-				ServerProcess sp = new ServerProcess(fileSystemManager, clientSocket);
+				ConnectFromPeer sp = new ConnectFromPeer(fileSystemManager, clientSocket);
 				sp.start();
 			}
 		} catch (IOException e) {

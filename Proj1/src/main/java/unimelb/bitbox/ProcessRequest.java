@@ -11,17 +11,16 @@ import java.net.Socket;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
 
-public class RequestProcessor extends Thread{
-	private static Logger log = Logger.getLogger(RequestProcessor.class.getName());
+public class ProcessRequest extends Thread{
+	private static Logger log = Logger.getLogger(ProcessRequest.class.getName());
 	private FileSystemManager fileSystemManager; 
 	private Document request;
 	private String command;
 	private Socket socket;
 	private BufferedReader reader;
-	private PrintWriter writer;
-	private boolean isComplete; 
+	private PrintWriter writer; 
 	
-	public RequestProcessor(FileSystemManager fileSystemManager,Document request,Socket socket) {
+	public ProcessRequest(FileSystemManager fileSystemManager,Document request,Socket socket) {
 		this.fileSystemManager = fileSystemManager;
 		this.request = request;
 		this.command = request.getString("command");
@@ -32,7 +31,7 @@ public class RequestProcessor extends Thread{
     	}catch(IOException e) {
     		e.printStackTrace();
     	}
-    	this.isComplete = false;
+    	//this.isComplete = false;
 	}
 	
 	@Override
@@ -69,13 +68,14 @@ public class RequestProcessor extends Thread{
 	}
 	
 	private void processHandshake() {
-		;
+		// receive handshake after handshake
+		Document result = Protocol.INVALID_PROTOCOL("handshake request after successful handshake");
+		writer.println(result.toJson());
 	}
 	
 	private void processFileCreate() {
-		System.out.println("processFileCreate() "+this.request.toJson());
 		log.info("Start Processing File Create: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileCreateResponse(this.request);
 
 		// send result to remote peer
@@ -83,79 +83,74 @@ public class RequestProcessor extends Thread{
 		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
 			requestFileByte(result);
 		}
-		this.isComplete = true;
 	}
 	
 	private void processFileDelete() {
 		log.info("Start Processing File Delete: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileDeleteResponse(this.request);
 		if(result.getBoolean("status")) {
 			log.info("Success delete file: " + this.request.getString("pathName"));
 		}
 		
 		writer.println(result.toJson());
-		this.isComplete = true;;
 	}
 	
 	private void processFileModify() {
 		log.info("Start Processing File Modify: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileModifyResponse(this.request);
 		// send result to remote peer
 		writer.println(result.toJson());
 		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
 			requestFileByte(result);
 		}
-		
-		this.isComplete = true;
 	}
 	
 	private void processDirectoryCreate() {
 		log.info("Start Processing Directory Create: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.directoryCreateResponse(this.request);
 		if(result.getBoolean("status")) {
 			log.info("Success create directory: " + this.request.getString("pathName"));
 		}
 		writer.println(result.toJson());
-		this.isComplete = true;
 	}
 	
 	private void processDirectoryDelete() {
 		log.info("Start Processing Directory Delete: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.directoryDeleteResponse(this.request);
 		if(result.getBoolean("status")) {
 			log.info("Success delete directory: " + this.request.getString("pathName"));
 		}
-		
 		writer.println(result.toJson());
-		this.isComplete = true;
 	}
 	
 	private void processFileByte() {
 		log.info("Start Processing File Byte Response: " + this.request.getString("pathName"));
-		RequestOperator requestOperator = new RequestOperator(this.fileSystemManager);
+		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileByteRequest(this.request);
 		long length = result.getLong("length");
 		if(length !=0) {
 			// send result to remote peer
+			log.info("Requesting file byte from peer " + result.getString("pathName") + 
+					"postion " + result.getLong("position") + "& length " + result.getLong("length"));
 			writer.println(result.toJson());
 		}else {
-			log.info("File fully load");
+			log.info("No more file byte request to send");
 		}
-		this.isComplete = true;
 	}
 	
 	private void processInvalid() {
-		log.info("Invalid Protocol detected");
+		log.info("Invalid Protocol received");
 	}
 	
 	private void requestFileByte(Document result) {
 		// proceed to send byte request
 		Document fileDescriptor = (Document) this.request.get("fileDescriptor");
 		long fileSize = fileDescriptor.getLong("fileSize");
+		long position = 0;
 		long length = 0;
 		if(fileSize >= PeerStatistics.blockSize) {
 			length = PeerStatistics.blockSize;
@@ -164,8 +159,10 @@ public class RequestProcessor extends Thread{
 		}
 		
 		// send FILE_BYTES_REQUEST to remote peer
-		Document docToSend = Protocol.FILE_BYTES_REQUEST(this.request, 0, length);
+		Document docToSend = Protocol.FILE_BYTES_REQUEST(this.request, position, length);
 
+		log.info("Requesting file byte from peer " + result.getString("pathName") + 
+				"postion " + position + "& length " + length);
 		writer.println(docToSend.toJson());			
 	}
 	

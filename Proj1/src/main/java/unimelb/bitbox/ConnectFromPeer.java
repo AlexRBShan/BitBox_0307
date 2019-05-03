@@ -7,8 +7,8 @@ import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager;
 
-public class ServerProcess extends Thread {
-	private static Logger log = Logger.getLogger(ServerProcess.class.getName());
+public class ConnectFromPeer extends Thread {
+	private static Logger log = Logger.getLogger(ConnectFromPeer.class.getName());
 	private FileSystemManager fileSystemManager;
 	
 	private Socket socket;
@@ -17,7 +17,7 @@ public class ServerProcess extends Thread {
 	
 	private boolean isHandshake;
 	
-	public ServerProcess(FileSystemManager fileSystemManager, Socket socket) {
+	public ConnectFromPeer(FileSystemManager fileSystemManager, Socket socket) {
 		this.fileSystemManager = fileSystemManager;
 		this.socket = socket;
 		this.isHandshake = false;
@@ -82,8 +82,7 @@ public class ServerProcess extends Thread {
 		while(this.isHandshake) {
 			try {
 				Document request = Document.parse(reader.readLine());
-				System.out.println(request.toJson());
-				RequestProcessor requestprocessor = new RequestProcessor(this.fileSystemManager, request, this.socket);
+				ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
 				requestprocessor.start();
 				
 			} catch (IOException e) {
