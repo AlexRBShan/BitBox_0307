@@ -30,7 +30,6 @@ public class TCPServer extends Thread {
 				Socket clientSocket = socket.accept();
 				log.info("Client " + clientSocket.getInetAddress().getHostAddress() + ":" +
 						clientSocket.getPort() +" trying to connect");
-				PeerStatistics.numPeersConnection++;
 				// Start a new thread for a connection
 				ConnectFromPeer sp = new ConnectFromPeer(fileSystemManager, clientSocket);
 				sp.start();

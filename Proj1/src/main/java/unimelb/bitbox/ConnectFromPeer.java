@@ -72,6 +72,8 @@ public class ConnectFromPeer extends Thread {
 						PeerStatistics.addPeer(currentClient);
 						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(this.localHostPort);
 						writer.println(handShakeRspon.toJson());
+						
+						PeerStatistics.numPeersConnection++;
 						this.isHandshake = true;
 						this.reader = reader;
 						this.writer = writer;

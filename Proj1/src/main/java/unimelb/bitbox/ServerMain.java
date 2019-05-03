@@ -32,10 +32,10 @@ public class ServerMain implements FileSystemObserver {
 			peersToConnect.add(new HostPort(peer));
 		}
 		
-		//PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
+		PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
 		// generate Sync events
-		SyncPeriodic sync = new SyncPeriodic(fileSystemManager);
-		sync.start();
+		//SyncEvent sync = new SyncEvent(fileSystemManager);
+		//sync.start();
 		
 		// initialize Server part
 		TCPServer newServer = new TCPServer(this.fileSystemManager, port);
