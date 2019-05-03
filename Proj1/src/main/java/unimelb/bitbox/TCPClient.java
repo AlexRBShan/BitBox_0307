@@ -41,6 +41,14 @@ public class TCPClient extends Thread{
 	
 	@Override
 	public void run() {
+		// wait sometime for server to start
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		//Initial Connection to all peers
 		for(HostPort peer: peersToConnect) {
 			peersAvailable.add(peer);

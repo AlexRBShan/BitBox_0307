@@ -40,26 +40,32 @@ public class ProcessEvent extends Thread{
     @Override
     public void run() {
     	log.info("Event Process for " + eventToHandle.toString());
-    	
+    	Document request = new Document();
     	// handling event
     	switch(eventToHandle.event) {
     	case FILE_CREATE:
-    		processFileCreate();
+    		//processFileCreate();
+    		request = Protocol.FILE_CREATE_REQUEST(this.eventToHandle.fileDescriptor, this.eventToHandle.pathName);
     		break;
 		case FILE_DELETE:
-			processFileDelete();
+			//processFileDelete();
+			request = Protocol.FILE_DELETE_REQUEST(this.eventToHandle.fileDescriptor, this.eventToHandle.pathName);
 			break;
 		case FILE_MODIFY:
-			processFileModify();
+			//processFileModify();
+			request = Protocol.FILE_MODIFY_REQUEST(this.eventToHandle.fileDescriptor, this.eventToHandle.pathName);
 			break;
 		case DIRECTORY_CREATE:
-			processDirectoryCreate();
+			//processDirectoryCreate();
+			request = Protocol.DIRECTORY_CREATE_REQUEST(this.eventToHandle.pathName);
 			break;
 		case  DIRECTORY_DELETE:
-			processDirectoryDelete();
+			//processDirectoryDelete();
+			request = Protocol.DIRECTORY_DELETE_REQUEST(this.eventToHandle.pathName);
 			break;
     	}
     	
+    	writer.println(request.toJson());
     	log.info("Event Process ended for " + eventToHandle.toString());
     }
     

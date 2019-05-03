@@ -25,20 +25,21 @@ public class ServerMain implements FileSystemObserver {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
 		
 		// read configurations for peers to connect
+		int port = Integer.parseInt(Configuration.getConfigurationValue("port"));
 		String[] peersList = Configuration.getConfigurationValue("peers").split(",");
 		ArrayList<HostPort> peersToConnect = new ArrayList<HostPort>();
 		for(String peer:peersList){
 			peersToConnect.add(new HostPort(peer));
 		}
 		
-		PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
+		//PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
 		// generate Sync events
-		//SyncPeriodic sync = new SyncPeriodic(fileSystemManager);
-		//sync.start();
+		SyncPeriodic sync = new SyncPeriodic(fileSystemManager);
+		sync.start();
 		
 		// initialize Server part
-		//TCPServer newServer = new TCPServer(this.fileSystemManager, serverPortNumber);
-		//newServer.start();
+		TCPServer newServer = new TCPServer(this.fileSystemManager, port);
+		newServer.start();
 		
 		// initialize Client part
 		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerStatistics.eventQueue);
@@ -49,11 +50,8 @@ public class ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		// TODO: process events
-		System.out.println("found event: " + fileSystemEvent.toString());
 		//store file system event to queue
 		PeerStatistics.eventQueue.offer(fileSystemEvent);
-		System.out.println("size of event: " + PeerStatistics.eventQueue.size());
 	}
 	
 }
