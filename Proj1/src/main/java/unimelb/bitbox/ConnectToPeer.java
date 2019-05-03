@@ -8,20 +8,27 @@ import java.io.*;
 import java.net.Socket;
 
 import unimelb.bitbox.util.HostPort;
+import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.Protocol;
 
 public class ConnectToPeer{
 	private static Logger log = Logger.getLogger(ConnectToPeer.class.getName());
-	HostPort targetPeer;
+	private HostPort targetPeer;
 	private Queue<HostPort> peersAvailable; 
 	private Socket mySocket;
+	private HostPort localHostPort;
+	
 	
 	public ConnectToPeer(HostPort targetPeer) {
 		this.targetPeer = targetPeer;
 		this.peersAvailable = new LinkedList<HostPort>();
 		this.peersAvailable.offer(targetPeer);
 		this.mySocket = null;
+		
+		String localHost = Configuration.getConfigurationValue("advertisedName");
+		int localPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
+		this.localHostPort = new HostPort(localHost, localPort);
 	}
 	
 	public boolean Connect(){
@@ -33,7 +40,7 @@ public class ConnectToPeer{
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
 				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
 				
-				Document hskRequest = Protocol.HANDSHAKE_REQUEST(peer);
+				Document hskRequest = Protocol.HANDSHAKE_REQUEST(this.localHostPort);
 				writer.println(hskRequest.toJson());
 				writer.flush();
 				log.info("Trying to Handshake with peer " + peer.host + ":" + peer.port);
@@ -85,24 +92,5 @@ public class ConnectToPeer{
 		return this.targetPeer;
 	}
 
-/* old function, not for use any more
-	private Document HandshakeConnect(HostPort peer) throws IOException{
-		Socket socket = new Socket(peer.host, peer.port);
-		// create input and output streams for 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-		PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
-		
-		Protocol p = new Protocol();
-		Document handShake = p.HANDSHAKE_REQUEST(peer.host, peer.port);
-		
-		writer.println(handShake.toJson());
-		log.info("Handshake with server " + peer.host + ":" + peer.port);
-		Document handShkRespond = Document.parse(reader.readLine());
-		log.info("Server respond with: " + handShkRespond.toString());
-		socket.close();
-		
-		return handShkRespond;
-	}
-*/
 }
 

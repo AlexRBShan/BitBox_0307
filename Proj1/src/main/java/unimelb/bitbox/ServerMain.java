@@ -24,25 +24,23 @@ public class ServerMain implements FileSystemObserver {
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
 		
-		// read configurations for server
-		int serverPortNumber = Integer.parseInt(Configuration.getConfigurationValue("port"));
-		String hostName = Configuration.getConfigurationValue("advertisedName");
-		HostPort serverHost = new HostPort(hostName,serverPortNumber);
 		// read configurations for peers to connect
 		String[] peersList = Configuration.getConfigurationValue("peers").split(",");
 		ArrayList<HostPort> peersToConnect = new ArrayList<HostPort>();
 		for(String peer:peersList){
 			peersToConnect.add(new HostPort(peer));
 		}
-		// ready to listen from peers
-		//TCPServer newServer = new TCPServer(serverHost.host,serverHost.port);
+		
+		PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
+		// generate Sync events
+		//SyncPeriodic sync = new SyncPeriodic(fileSystemManager);
+		//sync.start();
+		
+		// initialize Server part
+		//TCPServer newServer = new TCPServer(this.fileSystemManager, serverPortNumber);
 		//newServer.start();
 		
-		for(FileSystemEvent event:fileSystemManager.generateSyncEvents()) {
-			PeerStatistics.eventQueue.offer(event);
-		}
-		
-		// initialize connection to other peers
+		// initialize Client part
 		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerStatistics.eventQueue);
 		newClient.start();
 		

@@ -3,6 +3,8 @@ package unimelb.bitbox;
 import java.io.*;
 import java.net.Socket;
 import java.util.logging.Logger;
+
+import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager;
@@ -10,7 +12,7 @@ import unimelb.bitbox.util.FileSystemManager;
 public class ConnectFromPeer extends Thread {
 	private static Logger log = Logger.getLogger(ConnectFromPeer.class.getName());
 	private FileSystemManager fileSystemManager;
-	
+	private HostPort localHostPort;
 	private Socket socket;
 	private BufferedReader reader;
 	private PrintWriter writer;
@@ -21,6 +23,10 @@ public class ConnectFromPeer extends Thread {
 		this.fileSystemManager = fileSystemManager;
 		this.socket = socket;
 		this.isHandshake = false;
+		
+		String localHost = Configuration.getConfigurationValue("advertisedName");
+		int localPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
+		this.localHostPort = new HostPort(localHost, localPort);
 	}
 	
 	@Override
@@ -64,7 +70,7 @@ public class ConnectFromPeer extends Thread {
 						log.info("Handshake success with client " + socket.getInetAddress().getHostAddress()
 								+ ":" + socket.getPort());
 						PeerStatistics.addPeer(currentClient);
-						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(currentClient);
+						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(this.localHostPort);
 						writer.println(handShakeRspon.toJson());
 						this.isHandshake = true;
 						this.reader = reader;
