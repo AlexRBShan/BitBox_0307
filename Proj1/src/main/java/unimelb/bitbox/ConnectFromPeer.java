@@ -61,7 +61,7 @@ public class ConnectFromPeer extends Thread {
 					}
 					else {
 						// handshake response
-						log.info("Handshake success with client:" + socket.getInetAddress().getHostName()
+						log.info("Handshake success with client " + socket.getInetAddress().getHostAddress()
 								+ ":" + socket.getPort());
 						PeerStatistics.addPeer(currentClient);
 						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(currentClient);

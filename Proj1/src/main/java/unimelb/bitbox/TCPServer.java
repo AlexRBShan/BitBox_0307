@@ -27,12 +27,11 @@ public class TCPServer extends Thread {
 			@SuppressWarnings("resource")
 			ServerSocket socket = new ServerSocket(this.port);
 			while (true) {
-				log.info("Server ready for connection, listenning...");
 				Socket clientSocket = socket.accept();
-				// Start a new thread for a connection
+				log.info("Client " + clientSocket.getInetAddress().getHostAddress() + ":" +
+						clientSocket.getPort() +" trying to connect");
 				PeerStatistics.numPeersConnection++;
-				//Thread t = new Thread(() -> serveClient(clientSocket));
-				//t.start();
+				// Start a new thread for a connection
 				ConnectFromPeer sp = new ConnectFromPeer(fileSystemManager, clientSocket);
 				sp.start();
 			}
