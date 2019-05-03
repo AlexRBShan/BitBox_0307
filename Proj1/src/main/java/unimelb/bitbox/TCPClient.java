@@ -90,7 +90,6 @@ public class TCPClient extends Thread{
 					Socket socket = peersConnected.get(host);
 					if(read.ready()) {
 						Document response = Document.parse(read.readLine());
-						System.out.println("handle response: " + response.toJson());
 						ProcessRequest rp = new ProcessRequest(this.fileSystemManager, response, socket);
 						rp.start();
 					}else {
