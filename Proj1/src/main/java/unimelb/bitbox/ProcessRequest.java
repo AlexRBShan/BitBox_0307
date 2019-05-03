@@ -102,6 +102,12 @@ public class ProcessRequest extends Thread{
 		Document result = requestOperator.fileModifyResponse(this.request);
 		// send result to remote peer
 		writer.println(result.toJson());
+		System.out.println(result.toJson());
+		try {
+			this.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
 			requestFileByte(result);
 		}

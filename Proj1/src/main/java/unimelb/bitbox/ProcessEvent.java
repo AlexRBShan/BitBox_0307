@@ -144,21 +144,18 @@ public class ProcessEvent extends Thread{
     		try {
     			Document docRec = Document.parse(reader.readLine());
 				String command = docRec.getString("command");
-				switch(command) {
-				case "FILE_MODIFY_RESPONSE":
+				if(command.equals("FILE_MODIFY_RESPONSE")) {
 					if(docRec.getBoolean("status")) {
-						log.info("Directory created on remote peer");
+						log.info("File modifier created on remote peer");
 						// PROCEED to file byte
 						break;
 					}else {
 						log.info("File modify fail on remote peer with message: " + docRec.getString("message"));
 						this.isComplete = true;
 					}
-					break;
-				default:
-					log.info("Expecting DIRECTORY_CREATE_RESPONSE, Receiving " + command +", stop event sharing");
+				}else {
+					log.info("Expecting FILE_MODIFY_RESPONSE, Receiving " + command +", stop event sharing");
 					this.isComplete = true;
-					break;
 				}
     		}catch (IOException e) {
     			// TODO Auto-generated catch block
