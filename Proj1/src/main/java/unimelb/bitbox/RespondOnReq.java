@@ -108,7 +108,7 @@ public class RespondOnReq {
 		Document descriptor = (Document) request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		long fileSize = descriptor.getLong("fileSize");
-		long blockSize = PeerStatistics.blockSize;
+		long blockSize = PeerMaster.blockSize;
 		long position = 0;
 		if (fileSize <= blockSize) {
 			log.info("Request file byte " + pathName + "position " + position + "length " + fileSize);
@@ -130,7 +130,7 @@ public class RespondOnReq {
 		long length = request.getLong("length");
 		Document descriptor = (Document) request.get("fileDescriptor");
 		long fileSize = descriptor.getLong("fileSize");
-		long blockSize = PeerStatistics.blockSize;
+		long blockSize = PeerMaster.blockSize;
 		if (command.equals("FILE_BYTES_RESPONSE")) {
 			try {
 				byte[] bytes = Base64.getDecoder().decode(encodedContent);

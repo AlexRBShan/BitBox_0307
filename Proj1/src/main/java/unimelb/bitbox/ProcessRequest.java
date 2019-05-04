@@ -211,8 +211,8 @@ public class ProcessRequest extends Thread{
 		long fileSize = fileDescriptor.getLong("fileSize");
 		long position = 0;
 		long length = 0;
-		if(fileSize >= PeerStatistics.blockSize) {
-			length = PeerStatistics.blockSize;
+		if(fileSize >= PeerMaster.blockSize) {
+			length = PeerMaster.blockSize;
 		}else {
 			length = fileSize;
 		}

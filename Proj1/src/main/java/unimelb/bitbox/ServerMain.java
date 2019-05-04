@@ -32,17 +32,17 @@ public class ServerMain implements FileSystemObserver {
 			peersToConnect.add(new HostPort(peer));
 		}
 		
-		PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
+		//PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
 		// generate Sync events
-		//SyncEvent sync = new SyncEvent(fileSystemManager);
-		//sync.start();
+		SyncEvent sync = new SyncEvent(fileSystemManager);
+		sync.start();
 		
 		// initialize Server part
 		TCPServer newServer = new TCPServer(this.fileSystemManager, port);
 		newServer.start();
 		
 		// initialize Client part
-		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerStatistics.eventQueue);
+		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerMaster.eventQueue);
 		newClient.start();
 		
 		
@@ -51,7 +51,8 @@ public class ServerMain implements FileSystemObserver {
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		//store file system event to queue
-		PeerStatistics.eventQueue.offer(fileSystemEvent);
+		PeerMaster.eventQueue.offer(fileSystemEvent);
+		PeerMaster.eventQueue2.offer(fileSystemEvent);
 	}
 	
 }

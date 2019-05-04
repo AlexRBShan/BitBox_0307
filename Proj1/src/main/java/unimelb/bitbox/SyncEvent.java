@@ -19,7 +19,8 @@ public class SyncEvent extends Thread{
 	public void run() {
 		while(true) {
 			log.info("Generating Sync");
-			PeerStatistics.eventQueue.addAll(this.fileSystemManager.generateSyncEvents());
+			PeerMaster.eventQueue.addAll(this.fileSystemManager.generateSyncEvents());
+			PeerMaster.eventQueue2.addAll(this.fileSystemManager.generateSyncEvents());
 			try {
 				Thread.sleep(this.interval * 1000);
 			} catch (InterruptedException e) {

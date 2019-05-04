@@ -57,6 +57,7 @@ public class TCPClient extends Thread{
 			if(newConnection.Connect()) {
 				HostPort newHost = newConnection.getHost();
 				Socket newSocket = newConnection.getSocket();
+				PeerMaster.addPeer(newHost);
 				peersConnected.put(newHost, newSocket);
 				hostConnected.add(newHost);
 				
@@ -82,9 +83,9 @@ public class TCPClient extends Thread{
 				e.printStackTrace();
 			}
 			// handle event
-			if(!PeerStatistics.eventQueue.isEmpty()) {
+			if(!PeerMaster.eventQueue.isEmpty()) {
 				//FileSystemEvent newEvent = FILE_CREATE;
-				FileSystemEvent newEvent = PeerStatistics.eventQueue.poll();
+				FileSystemEvent newEvent = PeerMaster.eventQueue.poll();
 				for(HostPort host:hostConnected) {
 					Socket socket = peersConnected.get(host);
 					ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, socket);
@@ -98,6 +99,7 @@ public class TCPClient extends Thread{
 					Socket socket = peersConnected.get(host);
 					if(read.ready()) {
 						Document response = Document.parse(read.readLine());
+						log.info("get from peer: " + response.toJson());
 						ProcessRequest rp = new ProcessRequest(this.fileSystemManager, response, socket);
 						rp.start();
 					}else {
