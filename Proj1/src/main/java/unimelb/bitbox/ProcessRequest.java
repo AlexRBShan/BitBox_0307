@@ -86,7 +86,8 @@ public class ProcessRequest extends Thread{
 	}
 	
 	private void processFileByteRequest() {
-		log.info("File bytes request from remote peer for " + this.request.getString("pathName"));
+		log.info("File bytes request from remote peer for " + this.request.getString("pathName") + " from position "
+				+ this.request.getLong("position") + " of length " + this.request.getLong("length"));
 		boolean readStatus = false;
 		while(!readStatus) {
 			// send the request to fileOperator to read file
@@ -187,7 +188,8 @@ public class ProcessRequest extends Thread{
 	}
 	
 	private void processFileByte() {
-		log.info("Start Processing File Byte Response: " + this.request.getString("pathName"));
+		log.info("Start Processing File Byte Response: " + this.request.getString("pathName") +" from position "
+				+ this.request.getLong("position") + " of length " + this.request.getLong("length"));
 		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileByteRequest(this.request);
 		long length = result.getLong("length");

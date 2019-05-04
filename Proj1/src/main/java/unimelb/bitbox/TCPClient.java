@@ -99,9 +99,12 @@ public class TCPClient extends Thread{
 					Socket socket = peersConnected.get(host);
 					if(read.ready()) {
 						Document response = Document.parse(read.readLine());
-						log.info("get from peer: " + response.toJson());
-						ProcessRequest rp = new ProcessRequest(this.fileSystemManager, response, socket);
-						rp.start();
+						log.info("get from peer: " + response.getString("command"));
+						if(response != null) {
+							ProcessRequest rp = new ProcessRequest(this.fileSystemManager, response, socket);
+							rp.start();
+						}
+						
 					}else {
 						continue;
 					}

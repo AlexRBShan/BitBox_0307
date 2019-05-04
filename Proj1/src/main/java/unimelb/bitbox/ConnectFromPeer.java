@@ -98,9 +98,11 @@ public class ConnectFromPeer extends Thread {
 			try {
 				if(reader.ready()) {
 					Document request = Document.parse(reader.readLine());
-					log.info("request from peer: " + request.toJson());
-					ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
-					requestprocessor.start();
+					log.info("request from peer: " + request.getString("command"));
+					if(request != null) {
+						ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
+						requestprocessor.start();
+					}	
 				}
 				
 				
