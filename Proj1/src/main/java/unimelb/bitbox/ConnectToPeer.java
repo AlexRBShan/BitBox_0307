@@ -8,27 +8,60 @@ import java.io.*;
 import java.net.Socket;
 
 import unimelb.bitbox.util.HostPort;
-import unimelb.bitbox.util.Configuration;
+import unimelb.bitbox.util.FileSystemManager;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.Protocol;
 
-public class ConnectToPeer{
+public class ConnectToPeer extends Thread {
 	private static Logger log = Logger.getLogger(ConnectToPeer.class.getName());
+	private FileSystemManager fileSystemManager;
 	private HostPort targetPeer;
 	private Queue<HostPort> peersAvailable; 
 	private Socket mySocket;
+	private BufferedReader myReader;
+	private PrintWriter myWriter;
 	private HostPort localHostPort;
 	
 	
-	public ConnectToPeer(HostPort targetPeer) {
+	public ConnectToPeer(FileSystemManager fileSystemManager, HostPort targetPeer) {
+		this.fileSystemManager = fileSystemManager;
 		this.targetPeer = targetPeer;
 		this.peersAvailable = new LinkedList<HostPort>();
 		this.peersAvailable.offer(targetPeer);
-		this.mySocket = null;
 		
-		String localHost = Configuration.getConfigurationValue("advertisedName");
-		int localPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
+		String localHost = PeerMaster.myHost;
+		int localPort = PeerMaster.myPort;
 		this.localHostPort = new HostPort(localHost, localPort);
+	}
+	
+	@Override
+	public void run() {
+		boolean result = this.Connect();
+		while(result) {
+			// if a peer is found to connect, go to handle events and request
+			
+			//handle response
+			try {
+				if(this.myReader.ready()) {
+					Document response = Document.parse(this.myReader.readLine());
+					ProcessRequest rp = 
+							new ProcessRequest(this.fileSystemManager, response, this.mySocket, this.myReader, this.myWriter);
+					rp.start();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			// handle event
+			if(!PeerMaster.peerEventQ.isEmpty() && !PeerMaster.peerEventQ.get(this.targetPeer).isEmpty()) {
+				FileSystemEvent newEvent = PeerMaster.peerEventQ.get(this.targetPeer).poll();
+				ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, this.mySocket, this.myReader, this.myWriter);
+				ep.start();
+			}
+			
+		}
+		
 	}
 	
 	public boolean Connect(){
@@ -38,7 +71,7 @@ public class ConnectToPeer{
 			try {
 				Socket socket = new Socket(peer.host, peer.port);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
+				PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"),true);
 				
 				Document hskRequest = Protocol.HANDSHAKE_REQUEST(this.localHostPort);
 				writer.println(hskRequest.toJson());
@@ -46,7 +79,7 @@ public class ConnectToPeer{
 				log.info("Trying to Handshake with peer " + peer.host + ":" + peer.port);
 				
 				Document hskResponse = Document.parse(reader.readLine());
-				log.info("Server respond with: " + hskResponse.toJson());
+				log.info("Server respond handshake with: " + hskResponse.toJson());
 
 				// parsing returned document command
 				switch(hskResponse.getString("command")) {
@@ -57,11 +90,14 @@ public class ConnectToPeer{
 				    	// this.targetPeer = new HostPort(targetHost,targetPort);
 				    	this.targetPeer = hostReturned;
 				    	this.mySocket = socket;
+				    	this.myReader = reader;
+				    	this.myWriter = writer;
+				    	PeerMaster.addPeer(this.targetPeer);
 				    	log.info("peer " + targetPeer.toString() + " is connected!");
 				    	return true;
 				    // Connection is denied, retrieve possible target peers
 				    case "CONNECTION_REFUSED":
-				    	log.info("Connection Rejected by peer " + peer.toString());
+				    	log.info("Connection rejected by peer " + peer.toString());
 				    	@SuppressWarnings("unchecked")
 				    	ArrayList<Document> peersOnList = (ArrayList<Document>) hskResponse.get("peers");
 				    	
@@ -84,13 +120,6 @@ public class ConnectToPeer{
 			}	
 		}
 		return false;
-	}
-	
-	public Socket getSocket() {
-		return this.mySocket;
-	}
-	public HostPort getHost() {
-		return this.targetPeer;
 	}
 
 }

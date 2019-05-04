@@ -57,10 +57,16 @@ public class RespondOnReq {
 		String md5 = descriptor.getString("md5");
 		long fileSize = descriptor.getLong("fileSize");
 		long lastModified = descriptor.getLong("lastModified");
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		//valid command
 		if (command.equals("FILE_CREATE_REQUEST")) {
 			// confirm request is a file create request
-			if (fileSystemManager.fileNameExists(pathName)) {
+			if (this.fileSystemManager.fileNameExists(pathName)) {
 				//path name already exists, return file created false response
 				log.info("Create file " + pathName + " already exists");
 				return Protocol.FILE_CREATE_RESPONSE(request, "pathname already exists", false);					 
@@ -101,24 +107,6 @@ public class RespondOnReq {
 			return Protocol.INVALID_PROTOCOL("bad message");
 		}
 	}
-	
-	
-	//first time request
-	public Document firstFileByteRequest(Document request) {
-		Document descriptor = (Document) request.get("fileDescriptor");
-		String pathName = request.getString("pathName");
-		long fileSize = descriptor.getLong("fileSize");
-		long blockSize = PeerMaster.blockSize;
-		long position = 0;
-		if (fileSize <= blockSize) {
-			log.info("Request file byte " + pathName + "position " + position + "length " + fileSize);
-			return Protocol.FILE_BYTES_REQUEST(request, position, fileSize);
-		}
-		else {
-			log.info("Request file byte " + pathName + "position " + position + "length " + blockSize);
-			return Protocol.FILE_BYTES_REQUEST(request, position, blockSize);
-		}			
-	}
 
 	
 	//continue request
@@ -132,6 +120,7 @@ public class RespondOnReq {
 		long fileSize = descriptor.getLong("fileSize");
 		long blockSize = PeerMaster.blockSize;
 		if (command.equals("FILE_BYTES_RESPONSE")) {
+			log.info("Writing file " + pathName + " from postion " + position + " of length " + length);
 			try {
 				byte[] bytes = Base64.getDecoder().decode(encodedContent);
 				ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
@@ -163,17 +152,17 @@ public class RespondOnReq {
 					e.printStackTrace();
 				}
 				return Protocol.FILE_BYTES_REQUEST(request, fileSize, 0);
-			}
-			if (position + length + blockSize <= fileSize) {
+			}else if(position + length > fileSize) {
+				log.info("Overflow detected for file " + pathName + " with position " + position + " of length " + length);
+				return Protocol.FILE_BYTES_REQUEST(request, fileSize, -1);
+			}else if (position + length + blockSize < fileSize) {
 				log.info("Request file byte " + pathName + "position " + position + "length " + length);
 				return Protocol.FILE_BYTES_REQUEST(request, position+length, blockSize);
-			}
-			else {
+			}else {
 				return Protocol.FILE_BYTES_REQUEST(request, position+length, fileSize-(position+length));
 			}
 
-		}
-		else {
+		}else {
 			return Protocol.INVALID_PROTOCOL("bad message");
 		}
 	}
@@ -188,6 +177,7 @@ public class RespondOnReq {
 		long length = request.getLong("length");
 		String encodedContent="";
 		if (command.equals("FILE_BYTES_REQUEST")) {
+			log.info("Reading file " + pathName + " from postion " + position + " of length " + length);
 			try {
 				ByteBuffer byteBuffer = fileSystemManager.readFile(md5, position, length);
 				if(byteBuffer == null) {

@@ -4,9 +4,6 @@ import java.io.*;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.util.logging.Logger;
-import java.util.ArrayList;
-import unimelb.bitbox.util.Document;
-import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager;
 
 public class TCPServer extends Thread {
@@ -30,6 +27,7 @@ public class TCPServer extends Thread {
 				Socket clientSocket = socket.accept();
 				log.info("Client " + clientSocket.getInetAddress().getHostAddress() + ":" +
 						clientSocket.getPort() +" trying to connect");
+				
 				// Start a new thread for a connection
 				ConnectFromPeer sp = new ConnectFromPeer(fileSystemManager, clientSocket);
 				sp.start();

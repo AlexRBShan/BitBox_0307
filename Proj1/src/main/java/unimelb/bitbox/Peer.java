@@ -16,6 +16,16 @@ public class Peer
         log.info("BitBox Peer starting...");
         Configuration.getConfiguration();
         
+        //read configurations and store to peer master
+        PeerMaster.path = Configuration.getConfigurationValue("path");
+        PeerMaster.myPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
+        PeerMaster.myHost = Configuration.getConfigurationValue("advertisedName");
+        PeerMaster.peersList = Configuration.getConfigurationValue("peers").split(",");
+        PeerMaster.maxIncomingPeer = Integer.parseInt(Configuration.
+    			getConfigurationValue("maximumIncommingConnections"));
+        PeerMaster.blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
+        PeerMaster.syncInterval = Long.parseLong(Configuration.getConfigurationValue("syncInterval"));
+        
         new ServerMain();
         
     }

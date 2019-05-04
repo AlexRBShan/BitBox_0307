@@ -1,9 +1,6 @@
 package unimelb.bitbox;
 
-import java.io.IOException;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
 import java.net.Socket;
@@ -20,22 +17,20 @@ public class ProcessRequest extends Thread{
 	private BufferedReader reader;
 	private PrintWriter writer; 
 	
-	public ProcessRequest(FileSystemManager fileSystemManager,Document request,Socket socket) {
+	public ProcessRequest(FileSystemManager fileSystemManager,Document request
+			,Socket socket, BufferedReader reader, PrintWriter writer) {
 		this.fileSystemManager = fileSystemManager;
 		this.request = request;
 		this.command = request.getString("command");
 		this.socket = socket;
-    	try {
-    		this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
-    		this.writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"), true);
-    	}catch(IOException e) {
-    		e.printStackTrace();
-    	}
+    	this.reader = reader;
+    	this.writer = writer;
     	//this.isComplete = false;
 	}
 	
 	@Override
 	public void run() {
+		log.info("get from peer: " + command);
 		switch(command) {
 		case "HANDSHAKE_REQUEST":
 			// Can possible move handshake request also here.
@@ -85,31 +80,7 @@ public class ProcessRequest extends Thread{
 		
 	}
 	
-	private void processFileByteRequest() {
-		log.info("File bytes request from remote peer for " + this.request.getString("pathName") + " from position "
-				+ this.request.getLong("position") + " of length " + this.request.getLong("length"));
-		boolean readStatus = false;
-		while(!readStatus) {
-			// send the request to fileOperator to read file
-			RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
-			Document result = requestOperator.fileByteResponse(this.request);
-			// if the file read success
-			readStatus = result.getBoolean("status");
-			if(readStatus) {
-				// success reading file
-				// send the FILE BYTE to remote peer
-				writer.println(result.toJson());
-				// check if whole file has been sent
-				long fileSize = ((Document) result.get("fileDescriptor")).getLong("fileSize");
-				long position = result.getLong("position");
-				long length = result.getLong("length");
-				if(position + length == fileSize) {
-					log.info("File fully sent out to remote peer, total size: " + fileSize);
-				}
-			}
-		}
-	}
-	
+	// process on all responses except file byte
 	private void processResponse() {
 		String message = this.request.getString("message");
 		boolean status = this.request.getBoolean("status");
@@ -122,24 +93,28 @@ public class ProcessRequest extends Thread{
 		log.info("Response from peer " + this.command +" "+ result +" with message: " + message);
 	}
 	
+	// process handshake after handshake
 	private void processHandshake() {
 		// receive handshake after handshake
 		Document result = Protocol.INVALID_PROTOCOL("handshake request after successful handshake");
 		writer.println(result.toJson());
 	}
 	
+	// process file create
 	private void processFileCreate() {
-		log.info("Start Processing File Create: " + this.request.getString("pathName"));
+		log.info("Start Processing File Create Request: " + this.request.getString("pathName"));
 		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
 		Document result = requestOperator.fileCreateResponse(this.request);
 
 		// send result to remote peer
 		writer.println(result.toJson());
+		log.info("FileCreateResponse : " + result.toJson());
 		if(result.getBoolean("status") && !requestOperator.hasShortcut) {
 			requestFileByte(result);
 		}
 	}
 	
+	// process file delete
 	private void processFileDelete() {
 		log.info("Start Processing File Delete: " + this.request.getString("pathName"));
 		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
@@ -151,6 +126,7 @@ public class ProcessRequest extends Thread{
 		writer.println(result.toJson());
 	}
 	
+	// process file modify
 	private void processFileModify() {
 		log.info("Start Processing File Modify: " + this.request.getString("pathName"));
 		RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
@@ -203,6 +179,37 @@ public class ProcessRequest extends Thread{
 		}
 	}
 	
+	private void processFileByteRequest() {
+		log.info("Start Processing File Byte Request: " + this.request.getString("pathName") + " from position "
+				+ this.request.getLong("position") + " of length " + this.request.getLong("length"));
+		boolean readStatus = false;
+		while(!readStatus) {
+			// send the request to fileOperator to read file
+			RespondOnReq requestOperator = new RespondOnReq(this.fileSystemManager);
+			Document result = requestOperator.fileByteResponse(this.request);
+			// if the file read success
+			readStatus = result.getBoolean("status");
+			log.info("read file : " + readStatus + " for "+ this.request.getString("pathName") + " from position "
+					+ this.request.getLong("position") + " of length " + this.request.getLong("length") + 
+					"with information " + result.getString("message"));
+			if(readStatus) {
+				log.info("success for file read: "+ this.request.getString("pathName") + " from position "
+						+ this.request.getLong("position") + " of length " + this.request.getLong("length") + 
+						"with information " + result.getString("message"));
+				// success reading file
+				// send the FILE BYTE to remote peer
+				writer.println(result.toJson());
+				// check if whole file has been sent
+				long fileSize = ((Document) result.get("fileDescriptor")).getLong("fileSize");
+				long position = result.getLong("position");
+				long length = result.getLong("length");
+				if(position + length == fileSize) {
+					log.info(this.request.getString("pathName") + " is fully sent out to remote peer, total size: " + fileSize);
+				}
+			}
+		}
+	}
+	
 	private void processInvalid() {
 		log.info("Invalid Protocol received");
 	}
@@ -222,8 +229,8 @@ public class ProcessRequest extends Thread{
 		// send FILE_BYTES_REQUEST to remote peer
 		Document docToSend = Protocol.FILE_BYTES_REQUEST(this.request, position, length);
 
-		log.info("Requesting file byte from peer " + result.getString("pathName") + 
-				"postion " + position + "& length " + length);
+		log.info("Initial sending file byte request: " + result.getString("pathName") + 
+				" postion " + position + "& length " + length);
 		writer.println(docToSend.toJson());			
 	}
 	

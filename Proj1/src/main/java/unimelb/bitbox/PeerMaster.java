@@ -1,6 +1,5 @@
 package unimelb.bitbox;
 
-import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
@@ -8,19 +7,25 @@ import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.HashMap;
 
 public class PeerMaster {
-	// blockSize
-	public static long blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
-	// number of peers connected
-	public static int numPeersConnection = 0;
-	// max number of peers connected
-	private static int maxPeersConnection = Integer.parseInt(Configuration.
-			getConfigurationValue("maximumIncommingConnections"));
+	//Configurations
+	public static String path;
+	public static int myPort;
+	public static String myHost;
+	public static String[] peersList;
+	public static int maxIncomingPeer;
+	public static long blockSize;
+	public static long syncInterval;
+	
+	// number of incoming connections
+	public static int numPeersConnection = 0;	
 	// list of peers connection
-	private static ArrayList<HostPort> peerList = new ArrayList<HostPort>();
+	public static ArrayList<HostPort> peerList = new ArrayList<HostPort>();
 	
 	// event Queue;
+	public static HashMap<HostPort, Queue<FileSystemEvent>> peerEventQ = new HashMap<HostPort, Queue<FileSystemEvent>>();
 	public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 	public static Queue<FileSystemEvent> eventQueue2 = new LinkedList<FileSystemEvent>();
 	
@@ -29,7 +34,9 @@ public class PeerMaster {
 		if(containPeer(peerNew)) {
 			return false;
 		} else {
+			Queue<FileSystemEvent> newQ = new LinkedList<FileSystemEvent>();
 			peerList.add(peerNew);
+			peerEventQ.put(peerNew, newQ);
 			return true;
 		}
 	}
@@ -38,6 +45,7 @@ public class PeerMaster {
 	public static boolean removePeer(HostPort peerNew) {
 		if(containPeer(peerNew)) {
 			peerList.remove(peerNew);
+			peerEventQ.remove(peerNew);
 			return true;
 		} else {
 			
@@ -57,7 +65,7 @@ public class PeerMaster {
 	
 	// check if peer is full
 	public static boolean isPeerFull() {
-		if(numPeersConnection >= maxPeersConnection) {
+		if(numPeersConnection >= maxIncomingPeer) {
 			return true;
 		} else {
 			return false;
@@ -71,6 +79,18 @@ public class PeerMaster {
 			doc.add(peer.toDoc());
 		}
 		return doc;
+	}
+	
+	// add event to all connected peer
+	public static void eventToPeer(FileSystemEvent event) {
+		for(HostPort peer:peerList) {
+			peerEventQ.get(peer).offer(event);
+		}
+	}
+	public static void eventToPeer(ArrayList<FileSystemEvent> event) {
+		for(HostPort peer:peerList) {
+			peerEventQ.get(peer).addAll(event);
+		}
 	}
 
 }

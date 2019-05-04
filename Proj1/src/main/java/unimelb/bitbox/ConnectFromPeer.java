@@ -14,9 +14,10 @@ public class ConnectFromPeer extends Thread {
 	private static Logger log = Logger.getLogger(ConnectFromPeer.class.getName());
 	private FileSystemManager fileSystemManager;
 	private HostPort localHostPort;
+	private HostPort targetPeer;
 	private Socket socket;
-	private BufferedReader reader;
-	private PrintWriter writer;
+	private BufferedReader myReader;
+	private PrintWriter myWriter;
 	
 	private boolean isHandshake;
 	
@@ -79,11 +80,11 @@ public class ConnectFromPeer extends Thread {
 						PeerMaster.addPeer(currentClient);
 						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(this.localHostPort);
 						writer.println(handShakeRspon.toJson());
-						
+						this.targetPeer = currentClient;
 						PeerMaster.numPeersConnection++;
 						this.isHandshake = true;
-						this.reader = reader;
-						this.writer = writer;
+						this.myReader = reader;
+						this.myWriter = writer;
 					}
 				}
 			}
@@ -95,25 +96,26 @@ public class ConnectFromPeer extends Thread {
 		
 		// if handshake success, process event
 		while(this.isHandshake) {
+			// handle request
 			try {
-				if(reader.ready()) {
-					Document request = Document.parse(reader.readLine());
-					log.info("request from peer: " + request.getString("command"));
+				if(this.myReader.ready()) {
+					Document request = Document.parse(this.myReader.readLine());
 					if(request != null) {
-						ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
+						ProcessRequest requestprocessor = 
+								new ProcessRequest(this.fileSystemManager, request, this.socket, this.myReader, this.myWriter);
 						requestprocessor.start();
 					}	
 				}
-				
 				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			
-			while(!PeerMaster.eventQueue2.isEmpty()) {
+			// handle events
+			if(!PeerMaster.peerEventQ.isEmpty() && !PeerMaster.peerEventQ.get(this.targetPeer).isEmpty()) {
 				//FileSystemEvent newEvent = FILE_CREATE;
-				FileSystemEvent newEvent = PeerMaster.eventQueue2.poll();
-				ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, this.socket);
+				FileSystemEvent newEvent = PeerMaster.peerEventQ.get(this.targetPeer).poll();
+				ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, this.socket,this.myReader, this.myWriter);
 				ep.start();
 			}
 		}	

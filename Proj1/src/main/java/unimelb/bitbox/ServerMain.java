@@ -7,7 +7,6 @@ import java.util.Queue;
 import java.util.LinkedList;
 import java.util.ArrayList;
 
-import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemObserver;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
@@ -22,28 +21,34 @@ public class ServerMain implements FileSystemObserver {
 	//Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
-		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
+		fileSystemManager=new FileSystemManager(PeerMaster.path,this);
 		
 		// read configurations for peers to connect
-		int port = Integer.parseInt(Configuration.getConfigurationValue("port"));
-		String[] peersList = Configuration.getConfigurationValue("peers").split(",");
+		int port = PeerMaster.myPort;
+		String[] peersList = PeerMaster.peersList;
 		ArrayList<HostPort> peersToConnect = new ArrayList<HostPort>();
 		for(String peer:peersList){
 			peersToConnect.add(new HostPort(peer));
 		}
 		
-		//PeerStatistics.eventQueue.addAll(fileSystemManager.generateSyncEvents());
-		// generate Sync events
-		SyncEvent sync = new SyncEvent(fileSystemManager);
-		sync.start();
-		
+	
 		// initialize Server part
 		TCPServer newServer = new TCPServer(this.fileSystemManager, port);
 		newServer.start();
 		
 		// initialize Client part
-		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect,PeerMaster.eventQueue);
+		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect);
 		newClient.start();
+		
+		// wait some time for connection, generate Sync events
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		SyncEvent sync = new SyncEvent(fileSystemManager);
+		sync.start();
 		
 		
 	}
@@ -51,8 +56,7 @@ public class ServerMain implements FileSystemObserver {
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
 		//store file system event to queue
-		PeerMaster.eventQueue.offer(fileSystemEvent);
-		PeerMaster.eventQueue2.offer(fileSystemEvent);
+		PeerMaster.eventToPeer(fileSystemEvent);
 	}
 	
 }
