@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 import unimelb.bitbox.util.FileSystemManager;
 
 public class ConnectFromPeer extends Thread {
@@ -56,12 +57,18 @@ public class ConnectFromPeer extends Thread {
 					writer.println(output.toJson());
 					socket.close();
 				} else {
+					// HANDSHAKE_REQUEST is received
 					Document hostPort = (Document)handShakeReque.get("hostPort");
 					HostPort currentClient= new HostPort(hostPort);
-					// HANDSHAKE_REQUEST is received
-					if(PeerStatistics.isPeerFull()){
+					
+					if(PeerMaster.isPeerFull()){
 						// peer full
-						Document handShakeRspon = Protocol.CONNECTION_REFUSED(PeerStatistics.peerListToDoc());
+						Document handShakeRspon = Protocol.CONNECTION_REFUSED(PeerMaster.peerListToDoc());
+						writer.println(handShakeRspon.toJson());
+						socket.close();
+					}else if(PeerMaster.containPeer(currentClient)) {
+						// receive handshake after handshake
+						Document handShakeRspon = Protocol.INVALID_PROTOCOL("handshake request after successful handshake");
 						writer.println(handShakeRspon.toJson());
 						socket.close();
 					}
@@ -69,9 +76,11 @@ public class ConnectFromPeer extends Thread {
 						// handshake response
 						log.info("Handshake success with client " + socket.getInetAddress().getHostAddress()
 								+ ":" + socket.getPort());
-						PeerStatistics.addPeer(currentClient);
+						PeerMaster.addPeer(currentClient);
 						Document handShakeRspon = Protocol.HANDSHAKE_RESPONSE(this.localHostPort);
 						writer.println(handShakeRspon.toJson());
+						
+						PeerMaster.numPeersConnection++;
 						this.isHandshake = true;
 						this.reader = reader;
 						this.writer = writer;
@@ -87,12 +96,23 @@ public class ConnectFromPeer extends Thread {
 		// if handshake success, process event
 		while(this.isHandshake) {
 			try {
-				Document request = Document.parse(reader.readLine());
-				ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
-				requestprocessor.start();
+				if(reader.ready()) {
+					Document request = Document.parse(reader.readLine());
+					log.info("request from peer: " + request.toJson());
+					ProcessRequest requestprocessor = new ProcessRequest(this.fileSystemManager, request, this.socket);
+					requestprocessor.start();
+				}
+				
 				
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+			
+			while(!PeerMaster.eventQueue2.isEmpty()) {
+				//FileSystemEvent newEvent = FILE_CREATE;
+				FileSystemEvent newEvent = PeerMaster.eventQueue2.poll();
+				ProcessEvent ep = new ProcessEvent(this.fileSystemManager, newEvent, this.socket);
+				ep.start();
 			}
 		}	
 

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
 
 public class RespondOnReq {
 	private static Logger log = Logger.getLogger(RespondOnReq.class.getName());
@@ -19,9 +20,36 @@ public class RespondOnReq {
 		this.fileSystemManager=fileSystemManager;
 	}
 	
+	// client part
+	public Document eventFileCreate(FileSystemEvent event) {
+		Document doc = Protocol.FILE_CREATE_REQUEST(event.fileDescriptor, event.pathName);
+		return doc;
+	}
+	public Document eventFileDelete(FileSystemEvent event) {
+		Document doc = Protocol.FILE_DELETE_REQUEST(event.fileDescriptor, event.pathName);
+		return doc;
+	}
+	public Document eventFileModify(FileSystemEvent event) {
+		Document doc = Protocol.FILE_MODIFY_REQUEST(event.fileDescriptor, event.pathName);
+		return doc;
+	}
+	public Document eventDirectoryCreate(FileSystemEvent event) {
+		Document doc = Protocol.DIRECTORY_CREATE_REQUEST(event.pathName);
+		return doc;
+	}
+	public Document eventDirectoryDelete(FileSystemEvent event) {
+		Document doc = Protocol.DIRECTORY_DELETE_REQUEST(event.pathName);
+		return doc;
+	}
+	public boolean statusRespond(Document respond) {
+		String command = respond.getString("command");
+		boolean result = respond.getBoolean("status");
+		log.info(command + " with status " + result);
+		return result;
+	}
+
 	
-	
-	
+	// server part
 	public Document fileCreateResponse(Document request) {
 		String command = request.getString("command");
 		Document descriptor = (Document)request.get("fileDescriptor");
@@ -80,7 +108,7 @@ public class RespondOnReq {
 		Document descriptor = (Document) request.get("fileDescriptor");
 		String pathName = request.getString("pathName");
 		long fileSize = descriptor.getLong("fileSize");
-		long blockSize = PeerStatistics.blockSize;
+		long blockSize = PeerMaster.blockSize;
 		long position = 0;
 		if (fileSize <= blockSize) {
 			log.info("Request file byte " + pathName + "position " + position + "length " + fileSize);
@@ -102,7 +130,7 @@ public class RespondOnReq {
 		long length = request.getLong("length");
 		Document descriptor = (Document) request.get("fileDescriptor");
 		long fileSize = descriptor.getLong("fileSize");
-		long blockSize = PeerStatistics.blockSize;
+		long blockSize = PeerMaster.blockSize;
 		if (command.equals("FILE_BYTES_RESPONSE")) {
 			try {
 				byte[] bytes = Base64.getDecoder().decode(encodedContent);

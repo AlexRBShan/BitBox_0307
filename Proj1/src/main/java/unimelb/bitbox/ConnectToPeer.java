@@ -79,7 +79,8 @@ public class ConnectToPeer{
 				    	socket.close();
 				}
 			} catch(IOException e) {
-				e.printStackTrace();
+				log.info(e.toString());
+				return false;
 			}	
 		}
 		return false;
@@ -93,4 +94,3 @@ public class ConnectToPeer{
 	}
 
 }
-

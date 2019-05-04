@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class PeerStatistics {
+public class PeerMaster {
 	// blockSize
 	public static long blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
 	// number of peers connected
@@ -22,6 +22,7 @@ public class PeerStatistics {
 	
 	// event Queue;
 	public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
+	public static Queue<FileSystemEvent> eventQueue2 = new LinkedList<FileSystemEvent>();
 	
 	// add a peer not already connected to peer list
 	public static boolean addPeer(HostPort peerNew) {
@@ -45,7 +46,7 @@ public class PeerStatistics {
 	}
 	
 	// check if a new peer is already connected.
-	private static boolean containPeer(HostPort peerNew) {
+	public static boolean containPeer(HostPort peerNew) {
 		for(HostPort peerConnected : peerList) {
 			if(peerConnected.equals(peerNew)) {
 				return true;
