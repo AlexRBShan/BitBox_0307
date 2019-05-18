@@ -1,16 +1,22 @@
 package unimelb.bitbox;
 
+import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.HashMap;
 
+/** 
+ * Master for all peer properties
+ * as well as tracking events generated in peers
+ */
 public class PeerMaster {
-	//Configurations
+	// configuration properties
 	public static String path;
 	public static int myPort;
 	public static String myHost;
@@ -18,6 +24,12 @@ public class PeerMaster {
 	public static int maxIncomingPeer;
 	public static long blockSize;
 	public static long syncInterval;
+	public static String mode;
+	public static int udpPort;
+	public static int udpTimeout;
+	public static int udpRetries;
+	public static int clientPort;
+	public static String[] keysList;
 	
 	// number of incoming connections
 	public static int numPeersConnection = 0;	
@@ -26,8 +38,52 @@ public class PeerMaster {
 	
 	// event Queue;
 	public static HashMap<HostPort, Queue<FileSystemEvent>> peerEventQ = new HashMap<HostPort, Queue<FileSystemEvent>>();
-	public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
-	public static Queue<FileSystemEvent> eventQueue2 = new LinkedList<FileSystemEvent>();
+	//public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
+	//public static Queue<FileSystemEvent> eventQueue2 = new LinkedList<FileSystemEvent>();
+	
+	
+	/***************/
+	/** functions **/
+	/***************/
+	
+	// read from configuration.properties
+	public static void readConfig() {
+		// Peer configurations
+        path = Configuration.getConfigurationValue("path");
+        myPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
+        myHost = Configuration.getConfigurationValue("advertisedName");
+        peersList = Configuration.getConfigurationValue("peers").split(",");
+        maxIncomingPeer = Integer.parseInt(Configuration.getConfigurationValue("maximumIncommingConnections"));
+        blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
+        syncInterval = Long.parseLong(Configuration.getConfigurationValue("syncInterval"));
+        
+        // UDP configurations
+        mode = Configuration.getConfigurationValue("mode");
+        udpPort = Integer.parseInt(Configuration.getConfigurationValue("udpPort"));
+        udpTimeout = Integer.parseInt(Configuration.getConfigurationValue("udpTimeout"));
+        udpRetries = Integer.parseInt(Configuration.getConfigurationValue("udpRetries"));
+        
+        // Client configurations
+        clientPort = Integer.parseInt(Configuration.getConfigurationValue("clientPort"));
+        keysList = Configuration.getConfigurationValue("authorized_keys").split(",");
+	}
+	
+	// print all current configurations
+	public static void printConfig() {
+		System.out.println("path		:" + path);
+		System.out.println("myPort		:" + myPort);
+		System.out.println("myHost		:" + myHost);
+		System.out.println("peersList	:" + Arrays.toString(peersList));
+		System.out.println("maxIncomingPeer	:" + maxIncomingPeer);
+		System.out.println("blockSize	:" + blockSize);
+		System.out.println("syncInterval	:" + syncInterval);
+		System.out.println("mode		:" + mode);
+		System.out.println("udpPort		:" + udpPort);
+		System.out.println("udpTimeout	:" + udpTimeout);
+		System.out.println("udpRetries	:" + udpRetries);
+		System.out.println("clientPort	:" + clientPort);
+		System.out.println("keysList	:" + Arrays.toString(keysList));
+	}
 	
 	// add a peer not already connected to peer list
 	public static boolean addPeer(HostPort peerNew) {
