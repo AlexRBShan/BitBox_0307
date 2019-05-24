@@ -4,15 +4,23 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -27,53 +35,44 @@ public class ZTestEncrypt {
 				+ "XAXFqNiJWZR4KaeoYuVxd75QUCqCd5jMvL6AEo9ArxRc+3Yv3oKcWGHKHrNXB7Vt5boq2P"
 				+ "gjfWsq5r2V1bzpLMfDp61R1UEJWnfQ38nn04hfIxqlfkPMRWbd5SbN78TSJyzPEqYeQ== rashan@student.unimeb.edu.au";
 		
-		
-		
-		//byte[] data = Base64.getDecoder().decode((key.getBytes()));
-		//System.out.println(data);
-		
+		String privateKeyFile = "bitboxclient_rsa";
+		/** 
+		 * publick key
+		 */
 		try {
 			RSAPublicKey rsakey = CertificateUtils.parseSSHPublicKey(key);
 			
 			System.out.println(rsakey);
+			System.out.println(rsakey.getFormat());
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		
-		
-		/*
-		X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+		/**
+		 * private key
+		 */
+		Security.addProvider(new BouncyCastleProvider());
+		PEMParser pemParser;
 		try {
-			KeyFactory fact = KeyFactory.getInstance("RSA");
-			RSAPublicKey pubKey = (RSAPublicKey) fact.generatePublic(spec);
-		    System.out.println(pubKey);
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
+			pemParser = new PEMParser(new FileReader(privateKeyFile));
+			JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+			Object object = pemParser.readObject();
+			KeyPair kp = converter.getKeyPair((PEMKeyPair) object);
+			PrivateKey privateKey = kp.getPrivate();
+			
+			System.out.println(privateKey);
+			System.out.println(privateKey.getFormat());
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		*/
+		
 		 
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	public static byte[] toPKCS8Format(final PrivateKey privateKey) throws IOException
 	{
 		String keyFormat = privateKey.getFormat();

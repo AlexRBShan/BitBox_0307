@@ -12,6 +12,9 @@ public class CmdLineArgs {
 	@Option(required = false, name = "-p", aliases = {"--peer"}, usage = "PeerHostPort")
 	private String peer;
 	
+	@Option(required = false, name = "-i", usage = "Identity")
+	private String identity;
+	
 	
 	public String getServerHost() {
 		return hostPort.split(":")[0];
@@ -31,6 +34,10 @@ public class CmdLineArgs {
 	
 	public int getPeerPort() {
 		return Integer.parseInt(peer.split(":")[1]);
+	}
+	
+	public String getIdentity() {
+		return identity;
 	}
 
 }
