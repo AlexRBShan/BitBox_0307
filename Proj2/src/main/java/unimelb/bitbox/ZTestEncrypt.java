@@ -9,24 +9,14 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+
 import java.io.FileReader;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Security;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 public class ZTestEncrypt {
 
