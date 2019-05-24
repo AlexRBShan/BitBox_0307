@@ -27,10 +27,12 @@
     	<artifactId>args4j</artifactId>
     	<version>2.33</version>
 	</dependency>
-	<dependency>
+	<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk15on -->
+	
+		<dependency>
     	<groupId>org.bouncycastle</groupId>
-    	<artifactId>bcprov-jdk15on</artifactId>
-    	<version>1.60</version>
+    	<artifactId>bcpkix-jdk15on</artifactId>
+    	<version>1.50</version>
 	</dependency>
   </dependencies>
   
