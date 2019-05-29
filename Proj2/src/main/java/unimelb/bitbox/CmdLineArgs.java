@@ -10,30 +10,22 @@ public class CmdLineArgs {
 	private String command;
 	
 	@Option(required = false, name = "-p", aliases = {"--peer"}, usage = "PeerHostPort")
-	private String peer;
+	private String peer = "";
 	
-	@Option(required = false, name = "-i", usage = "Identity")
+	@Option(required = true, name = "-i", usage = "Identity")
 	private String identity;
 	
 	
-	public String getServerHost() {
-		return hostPort.split(":")[0];
-	}
-	
-	public int getServerPort() {
-		return Integer.parseInt(hostPort.split(":")[1]);
+	public String getServer() {
+		return hostPort;
 	}
 	
 	public String getCmd() {
 		return command;
 	}
 	
-	public String getPeerHost() {
-		return peer.split(":")[0];
-	}
-	
-	public int getPeerPort() {
-		return Integer.parseInt(peer.split(":")[1]);
+	public String getPeer() {
+		return peer;
 	}
 	
 	public String getIdentity() {

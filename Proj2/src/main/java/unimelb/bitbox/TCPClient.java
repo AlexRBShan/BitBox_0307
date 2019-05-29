@@ -1,36 +1,42 @@
 package unimelb.bitbox;
 
-import java.util.logging.Logger;
-import java.util.ArrayList;
-
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
 import unimelb.bitbox.ConnectToPeer;
 
 public class TCPClient extends Thread{
-	private static Logger log = Logger.getLogger(TCPClient.class.getName());
 	private FileSystemManager fileSystemManager;
-	private ArrayList<HostPort> peersToConnect;
+	public static Queue<HostPort> peerToConnect = new LinkedList<HostPort>();;
 	
-	public TCPClient(FileSystemManager fileSystemManager, ArrayList<HostPort> peersToConnect) {
+	public TCPClient(FileSystemManager fileSystemManager) {
 		this.fileSystemManager = fileSystemManager;
-		this.peersToConnect = peersToConnect;
 	}
 	
 	@Override
 	public void run() {
+		for(String host: PeerMaster.peerArray) {
+			HostPort peer = new HostPort(host);
+			peerToConnect.offer(peer);
+		}
 		// wait sometime for server to start
 		try {
 			Thread.sleep(1000);
-		} catch (InterruptedException e1) {
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 		
 		//Initial Connection to all peers
-		for(HostPort peer: peersToConnect) {
-			ConnectToPeer newConnection = new ConnectToPeer(this.fileSystemManager, peer);
-			newConnection.start();
+		while(true) {
+			while(!peerToConnect.isEmpty()) {
+				HostPort peer = peerToConnect.poll();
+				ConnectToPeer newConnection = new ConnectToPeer(this.fileSystemManager, peer);
+				newConnection.start();
+		}
 		}
 	}
 	

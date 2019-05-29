@@ -3,8 +3,6 @@ package unimelb.bitbox;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
-import java.util.Queue;
-import java.util.LinkedList;
 import java.util.ArrayList;
 
 import unimelb.bitbox.util.FileSystemManager;
@@ -22,40 +20,49 @@ public class ServerMain implements FileSystemObserver {
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(PeerMaster.path,this);
-		
-		// read configurations for peers to connect
-		int port = PeerMaster.myPort;
-		String[] peersList = PeerMaster.peersList;
-		ArrayList<HostPort> peersToConnect = new ArrayList<HostPort>();
-		for(String peer:peersList){
-			peersToConnect.add(new HostPort(peer));
-		}
-		
 	
-		// initialize Server part
-		TCPServer newServer = new TCPServer(this.fileSystemManager, port);
-		newServer.start();
-		
-		// initialize Client part
-		TCPClient newClient = new TCPClient(this.fileSystemManager,peersToConnect);
-		newClient.start();
-		
-		// wait some time for connection, generate Sync events
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		SyncEvent sync = new SyncEvent(fileSystemManager);
-		sync.start();
-		
+		// check desired running mode for the peer
+		if(!PeerMaster.mode.equals("tcp") && !PeerMaster.mode.equals("udp")) {
+			// mode is not udp or tcp
+			log.info("mode is not correctly set, peer not starting.");
+			
+		}else {
+			if(PeerMaster.mode.equals("tcp")) {
+				log.info("Peer is starting in TCP mode");
+				
+				// initialize Server part
+				TCPServer newServer = new TCPServer(this.fileSystemManager);
+				newServer.start();
+				
+				// initialize Client part
+				TCPClient newClient = new TCPClient(this.fileSystemManager);
+				newClient.start();
+			}else {
+				log.info("Peer is starting in UDP mode.");
+				UDPPeer udpPeer = new UDPPeer(fileSystemManager);
+				udpPeer.startUDP();
+			}
+			
+			// listening for client
+			SecureServer ss = new SecureServer(PeerMaster.clientPort);
+			ss.start();
+			
+			// wait some time for connection, generate Sync events
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			SyncEvent sync = new SyncEvent(fileSystemManager);
+			sync.start();
+			
+		}	
 		
 	}
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		//store file system event to queue
+		// push file system event to queue
 		PeerMaster.eventToPeer(fileSystemEvent);
 	}
 	

@@ -10,11 +10,9 @@ public class TCPServer extends Thread {
 	private static Logger log = Logger.getLogger(TCPServer.class.getName());
 	
 	private FileSystemManager fileSystemManager;
-	private int port;
 	
-	public TCPServer(FileSystemManager fileSystemManager, int portNumber) {
+	public TCPServer(FileSystemManager fileSystemManager) {
 		this.fileSystemManager = fileSystemManager;
-		this.port = portNumber;
 	}
 	
 	@Override
@@ -22,7 +20,7 @@ public class TCPServer extends Thread {
 		
 		try {
 			@SuppressWarnings("resource")
-			ServerSocket socket = new ServerSocket(this.port);
+			ServerSocket socket = new ServerSocket(PeerMaster.myPort);
 			while (true) {
 				Socket clientSocket = socket.accept();
 				log.info("Client " + clientSocket.getInetAddress().getHostAddress() + ":" +

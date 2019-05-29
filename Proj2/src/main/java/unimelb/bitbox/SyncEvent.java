@@ -1,8 +1,10 @@
 package unimelb.bitbox;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import unimelb.bitbox.util.FileSystemManager;
+import unimelb.bitbox.util.HostPort;
 
 public class SyncEvent extends Thread{
 	private Logger log = Logger.getLogger(SyncEvent.class.getName());
@@ -21,7 +23,11 @@ public class SyncEvent extends Thread{
 			
 			if(!this.fileSystemManager.generateSyncEvents().isEmpty()) {
 				// if there is event, add to queue
-				PeerMaster.eventToPeer(this.fileSystemManager.generateSyncEvents());	
+				PeerMaster.eventToPeer(this.fileSystemManager.generateSyncEvents());
+				System.out.println("Current connections: ");
+				for(HostPort peer: PeerMaster.peerList) {
+					System.out.println("  --" + peer.toString());
+				}
 			}
 			try {
 				Thread.sleep(this.interval * 1000);

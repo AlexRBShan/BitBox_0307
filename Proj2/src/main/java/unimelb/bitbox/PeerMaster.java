@@ -20,7 +20,7 @@ public class PeerMaster {
 	public static String path;
 	public static int myPort;
 	public static String myHost;
-	public static String[] peersList;
+	public static String[] peerArray;
 	public static int maxIncomingPeer;
 	public static long blockSize;
 	public static long syncInterval;
@@ -41,6 +41,8 @@ public class PeerMaster {
 	//public static Queue<FileSystemEvent> eventQueue = new LinkedList<FileSystemEvent>();
 	//public static Queue<FileSystemEvent> eventQueue2 = new LinkedList<FileSystemEvent>();
 	
+	// disconnect list from the client commands
+	public static ArrayList<HostPort> disconList = new ArrayList<HostPort>();
 	
 	/***************/
 	/** functions **/
@@ -52,7 +54,7 @@ public class PeerMaster {
         path = Configuration.getConfigurationValue("path");
         myPort = Integer.parseInt(Configuration.getConfigurationValue("port"));
         myHost = Configuration.getConfigurationValue("advertisedName");
-        peersList = Configuration.getConfigurationValue("peers").split(",");
+        peerArray = Configuration.getConfigurationValue("peers").split(",");
         maxIncomingPeer = Integer.parseInt(Configuration.getConfigurationValue("maximumIncommingConnections"));
         blockSize = Long.parseLong(Configuration.getConfigurationValue("blockSize"));
         syncInterval = Long.parseLong(Configuration.getConfigurationValue("syncInterval"));
@@ -73,7 +75,7 @@ public class PeerMaster {
 		System.out.println("path		:" + path);
 		System.out.println("myPort		:" + myPort);
 		System.out.println("myHost		:" + myHost);
-		System.out.println("peersList	:" + Arrays.toString(peersList));
+		System.out.println("peerArray	:" + Arrays.toString(peerArray));
 		System.out.println("maxIncomingPeer	:" + maxIncomingPeer);
 		System.out.println("blockSize	:" + blockSize);
 		System.out.println("syncInterval	:" + syncInterval);
@@ -148,5 +150,14 @@ public class PeerMaster {
 			peerEventQ.get(peer).addAll(event);
 		}
 	}
+	
+	public static boolean inDisconList(HostPort peer) {
+		if(disconList.contains(peer)) {
+			disconList.remove(peer);
+			return true;
+		}
+		return false;
+	}
+	
 
 }

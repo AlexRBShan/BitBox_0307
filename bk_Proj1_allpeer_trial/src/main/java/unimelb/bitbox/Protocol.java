@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileDescriptor;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class Protocol {
 
@@ -160,114 +161,6 @@ public class Protocol {
 	}
 	
 	
-	static public Document AUTH_REQUEST(String identity) {
-		Document doc = new Document();
-		doc.append("command", "AUTH_REQUEST");
-		doc.append("identity", identity);
-		return doc;
-	}
 	
-	static public Document AUTH_RESPONSE(String aes128, boolean status, String message) {
-		Document doc = new Document();
-		doc.append("command", "AUTH_RESPONSE");
-		doc.append("AES128", aes128);
-		doc.append("status", status);
-		doc.append("message", message);
-		return doc;
-	}
-	
-	static public Document AUTH_RESPONSE(boolean status, String message) {
-		Document doc = new Document();
-		doc.append("command", "AUTH_RESPONSE");
-		doc.append("status", status);
-		doc.append("message", message);
-		return doc;
-	}
-
-	
-	static public Document LIST_PEERS_REQUEST() {
-		Document doc = new Document();
-		doc.append("command", "LIST_PEERS_REQUEST");
-		return doc;
-	}
-	
-	static public Document LIST_PEERS_RESPONSE(ArrayList<Document> peerList) {
-		Document doc = new Document();
-		doc.append("command", "LIST_PEERS_RESPONSE");
-		doc.append("peers", peerList);
-		return doc;
-	}
-	
-	static public Document CONNECT_PEER_REQUEST(HostPort hostPort) {
-		Document doc = new Document();
-		doc.append("command", "CONNECT_PEER_REQUEST");
-		doc.append("host", hostPort.host);
-		doc.append("port", hostPort.port);
-		return doc;
-	}
-	
-	static public Document CONNECT_PEER_REQUEST(String host, int port) {
-		Document doc = new Document();
-		doc.append("command", "CONNECT_PEER_REQUEST");
-		doc.append("host", host);
-		doc.append("port", port);
-		return doc;
-	}
-	
-	static public Document CONNECT_PEER_RESPONSE(HostPort hostPort, boolean status, String msg) {
-		Document doc = new Document();
-		doc.append("command", "CONNECT_PEER_RESPONSE");
-		doc.append("host", hostPort.host);
-		doc.append("port", hostPort.port);
-		doc.append("status", status);
-		doc.append("message", msg);
-		return doc;
-	}
-	
-	static public Document CONNECT_PEER_RESPONSE(String host, int port, boolean status, String msg) {
-		Document doc = new Document();
-		doc.append("command", "CONNECT_PEER_RESPONSE");
-		doc.append("host", host);
-		doc.append("port", port);
-		doc.append("status", status);
-		doc.append("message", msg);
-		return doc;
-	}
-	
-	static public Document DISCONNECT_PEER_REQUEST(HostPort hostPort) {
-		Document doc = new Document();
-		doc.append("command", "DISCONNECT_PEER_REQUEST");
-		doc.append("host", hostPort.host);
-		doc.append("port", hostPort.port);
-		return doc;
-	}
-	
-	static public Document DISCONNECT_PEER_REQUEST(String host, int port) {
-		Document doc = new Document();
-		doc.append("command", "DISCONNECT_PEER_REQUEST");
-		doc.append("host", host);
-		doc.append("port", port);
-		return doc;
-	}
-	
-	static public Document DISCONNECT_PEER_RESPONSE(HostPort hostPort, boolean status, String msg) {
-		Document doc = new Document();
-		doc.append("command", "DISCONNECT_PEER_RESPONSE");
-		doc.append("host", hostPort.host);
-		doc.append("port", hostPort.port);
-		doc.append("status", status);
-		doc.append("message", msg);
-		return doc;
-	}
-	
-	static public Document DISCONNECT_PEER_RESPONSE(String host, int port, boolean status, String msg) {
-		Document doc = new Document();
-		doc.append("command", "DISCONNECT_PEER_RESPONSE");
-		doc.append("host", host);
-		doc.append("port", port);
-		doc.append("status", status);
-		doc.append("message", msg);
-		return doc;
-	}
 	
 }

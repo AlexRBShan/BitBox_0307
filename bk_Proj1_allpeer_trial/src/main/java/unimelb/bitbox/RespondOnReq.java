@@ -8,60 +8,19 @@ import java.util.logging.Logger;
 
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
-import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
-import unimelb.bitbox.util.HostPort;;
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;;
 
 public class RespondOnReq {
 	private static Logger log = Logger.getLogger(RespondOnReq.class.getName());
 	private FileSystemManager fileSystemManager;
 	public boolean hasShortcut = false;
-	private FileSystemEvent event;
-	private HostPort hostPort;
 	
 	
 	public RespondOnReq(FileSystemManager fileSystemManager) {
 		this.fileSystemManager=fileSystemManager;
 	}
 	
-	public RespondOnReq(FileSystemEvent event) {
-		this.event = event;
-	}
-	
-	public RespondOnReq(HostPort hostPort) {
-		this.hostPort = hostPort;
-	}
-	
-	
-	// generate documents for events
-	public Document getDoc() {
-		Document doc = new Document();
-		// HandShake
-		if(hostPort!=null) {
-			doc = Protocol.HANDSHAKE_REQUEST(hostPort);
-		}else {
-			// Events
-			switch(event.event.toString()) {
-			case "FILE_CREATE":
-				doc = Protocol.FILE_CREATE_REQUEST(event.fileDescriptor, event.pathName);
-				break;
-			case "FILE_DELETE":
-				doc = Protocol.FILE_DELETE_REQUEST(event.fileDescriptor, event.pathName);
-				break;
-			case "FILE_MODIFY":
-				doc = Protocol.FILE_MODIFY_REQUEST(event.fileDescriptor, event.pathName);
-				break;
-			case "DIRECTORY_CREATE":
-				doc = Protocol.DIRECTORY_CREATE_REQUEST(event.pathName);
-				break;
-			case "DIRECTORY_DELETE":
-				doc = Protocol.DIRECTORY_DELETE_REQUEST(event.pathName);
-				break;
-			}
-		}
-		
-		return doc;
-	}
-	
+	// client part
 	public Document eventFileCreate(FileSystemEvent event) {
 		Document doc = Protocol.FILE_CREATE_REQUEST(event.fileDescriptor, event.pathName);
 		return doc;
@@ -82,6 +41,12 @@ public class RespondOnReq {
 		Document doc = Protocol.DIRECTORY_DELETE_REQUEST(event.pathName);
 		return doc;
 	}
+	public boolean statusRespond(Document respond) {
+		String command = respond.getString("command");
+		boolean result = respond.getBoolean("status");
+		log.info(command + " with status " + result);
+		return result;
+	}
 
 	
 	// server part
@@ -92,16 +57,10 @@ public class RespondOnReq {
 		String md5 = descriptor.getString("md5");
 		long fileSize = descriptor.getLong("fileSize");
 		long lastModified = descriptor.getLong("lastModified");
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		//valid command
 		if (command.equals("FILE_CREATE_REQUEST")) {
 			// confirm request is a file create request
-			if (this.fileSystemManager.fileNameExists(pathName)) {
+			if (fileSystemManager.fileNameExists(pathName)) {
 				//path name already exists, return file created false response
 				log.info("Create file " + pathName + " already exists");
 				return Protocol.FILE_CREATE_RESPONSE(request, "pathname already exists", false);					 
@@ -142,6 +101,24 @@ public class RespondOnReq {
 			return Protocol.INVALID_PROTOCOL("bad message");
 		}
 	}
+	
+	
+	//first time request
+	public Document firstFileByteRequest(Document request) {
+		Document descriptor = (Document) request.get("fileDescriptor");
+		String pathName = request.getString("pathName");
+		long fileSize = descriptor.getLong("fileSize");
+		long blockSize = PeerMaster.blockSize;
+		long position = 0;
+		if (fileSize <= blockSize) {
+			log.info("Request file byte " + pathName + "position " + position + "length " + fileSize);
+			return Protocol.FILE_BYTES_REQUEST(request, position, fileSize);
+		}
+		else {
+			log.info("Request file byte " + pathName + "position " + position + "length " + blockSize);
+			return Protocol.FILE_BYTES_REQUEST(request, position, blockSize);
+		}			
+	}
 
 	
 	//continue request
@@ -155,7 +132,6 @@ public class RespondOnReq {
 		long fileSize = descriptor.getLong("fileSize");
 		long blockSize = PeerMaster.blockSize;
 		if (command.equals("FILE_BYTES_RESPONSE")) {
-			log.info("Writing file " + pathName + " from postion " + position + " of length " + length);
 			try {
 				byte[] bytes = Base64.getDecoder().decode(encodedContent);
 				ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
@@ -187,17 +163,17 @@ public class RespondOnReq {
 					e.printStackTrace();
 				}
 				return Protocol.FILE_BYTES_REQUEST(request, fileSize, 0);
-			}else if(position + length > fileSize) {
-				log.info("Overflow detected for file " + pathName + " with position " + position + " of length " + length);
-				return Protocol.FILE_BYTES_REQUEST(request, fileSize, -1);
-			}else if (position + length + blockSize < fileSize) {
+			}
+			if (position + length + blockSize <= fileSize) {
 				log.info("Request file byte " + pathName + "position " + position + "length " + length);
 				return Protocol.FILE_BYTES_REQUEST(request, position+length, blockSize);
-			}else {
+			}
+			else {
 				return Protocol.FILE_BYTES_REQUEST(request, position+length, fileSize-(position+length));
 			}
 
-		}else {
+		}
+		else {
 			return Protocol.INVALID_PROTOCOL("bad message");
 		}
 	}
@@ -212,7 +188,6 @@ public class RespondOnReq {
 		long length = request.getLong("length");
 		String encodedContent="";
 		if (command.equals("FILE_BYTES_REQUEST")) {
-			log.info("Reading file " + pathName + " from postion " + position + " of length " + length);
 			try {
 				ByteBuffer byteBuffer = fileSystemManager.readFile(md5, position, length);
 				if(byteBuffer == null) {
@@ -257,12 +232,12 @@ public class RespondOnReq {
 				}else {
 					//unsafe pathname
 					log.info("Delete file " + pathName + " path is not safe");
-					return Protocol.FILE_DELETE_RESPONSE(request, "unsafe pathname given",false);
+					return Protocol.FILE_CREATE_RESPONSE(request, "unsafe pathname given",false);
 				}
 			}else {
 				//pathname does not exist
 				log.info("Delete file " + pathName + " does not exist");
-				return Protocol.FILE_DELETE_RESPONSE(request, "pathname does not exist",false);				
+				return Protocol.FILE_CREATE_RESPONSE(request, "pathname does not exist",false);				
 			}
 		}else {
 			return Protocol.INVALID_PROTOCOL("bad message");
