@@ -10,7 +10,6 @@ import unimelb.bitbox.ConnectToPeer;
 
 public class TCPClient extends Thread{
 	private FileSystemManager fileSystemManager;
-	public static Queue<HostPort> peerToConnect = new LinkedList<HostPort>();;
 	
 	public TCPClient(FileSystemManager fileSystemManager) {
 		this.fileSystemManager = fileSystemManager;
@@ -20,7 +19,7 @@ public class TCPClient extends Thread{
 	public void run() {
 		for(String host: PeerMaster.peerArray) {
 			HostPort peer = new HostPort(host);
-			peerToConnect.offer(peer);
+			PeerMaster.peerToConnect.offer(peer);
 		}
 		// wait sometime for server to start
 		try {
@@ -32,11 +31,17 @@ public class TCPClient extends Thread{
 		
 		//Initial Connection to all peers
 		while(true) {
-			while(!peerToConnect.isEmpty()) {
-				HostPort peer = peerToConnect.poll();
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(!PeerMaster.peerToConnect.isEmpty()) {
+				HostPort peer = PeerMaster.peerToConnect.poll();
 				ConnectToPeer newConnection = new ConnectToPeer(this.fileSystemManager, peer);
 				newConnection.start();
-		}
+			}
 		}
 	}
 	

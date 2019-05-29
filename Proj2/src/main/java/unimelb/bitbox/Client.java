@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.logging.Logger;
+import java.util.ArrayList;
 
 import org.kohsuke.args4j.CmdLineException;
 
@@ -16,7 +16,6 @@ import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.HostPort;
 
 public class Client {
-	private static Logger log = Logger.getLogger(Client.class.getName());
 
 	public static void main(String[] args) {
 		
@@ -43,7 +42,7 @@ public class Client {
 			
 			//receiving authority response
 			Document authResponse = Document.parse(reader.readLine());
-			log.info("Received:" + authResponse.toJson());
+
 			boolean status = authResponse.getBoolean("status");
 			String encryption = "";
 			if (status) {
@@ -73,7 +72,25 @@ public class Client {
 			
 			// get the response of command from server
 			Document cmdResponse = Document.parse(Secure.AESDecrypt(tempKey, reader.readLine()));
-			System.out.println(cmdResponse.toJson());
+			switch(cmdResponse.getString("command")){
+			case "LIST_PEERS_RESPONSE":
+				@SuppressWarnings("unchecked") 
+				ArrayList<Document> peers = (ArrayList<Document>) cmdResponse.get("peers");
+				if(peers.isEmpty()) {
+					System.out.println("No current connections");
+				}else {
+					System.out.println("Connection List: ");
+					for(Document peer: peers) {
+						System.out.println("	" + peer.toJson());
+					}
+				}
+				break;
+			default:
+				System.out.println("result: ");
+				System.out.println("	" + cmdResponse.toJson());
+				break;
+				
+			}
 			
 			// close the socket
 			client.close();

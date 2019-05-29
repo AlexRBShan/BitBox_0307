@@ -88,7 +88,7 @@ public class UDPPeer {
 					UDPDataPack packtoSend = sendQueue.poll();
 					socket.send(packtoSend.getDatagramPacket());
 					log.info("send "+ packtoSend.getDocument().toJson() +" to: " + packtoSend.getHostPort().toString() 
-							+ "for the " + packtoSend.getRetry() + " times");
+							+ " for " + packtoSend.getRetry() + " times");
 					// set the timer and retry counter for the packet sent
 					long startTime = System.currentTimeMillis();
 					packtoSend.setStartTime(startTime);

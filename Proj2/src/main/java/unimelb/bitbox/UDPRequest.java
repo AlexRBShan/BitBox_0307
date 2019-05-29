@@ -110,6 +110,12 @@ public class UDPRequest extends Thread{
 			Document inPeerDoc = (Document) request.get("hostPort");
 			HostPort inPeer= new HostPort(inPeerDoc);
 			HostPort myHostPort = new HostPort(PeerMaster.myHost, PeerMaster.udpPort);
+			
+			response = Protocol.HANDSHAKE_RESPONSE(myHostPort);
+			// add peer to Peer list
+			PeerMaster.addPeer(inPeer);
+			
+			/*
 			if(hostPort.equals(inPeer)) {
 				response = Protocol.HANDSHAKE_RESPONSE(myHostPort);
 				// add peer to Peer list
@@ -117,6 +123,7 @@ public class UDPRequest extends Thread{
 			} else {
 				response = Protocol.INVALID_PROTOCOL("HostPort advertised is different from HostPort sending message");
 			}
+			*/
 		}
 		
 		// add response to send queue

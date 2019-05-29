@@ -44,6 +44,9 @@ public class PeerMaster {
 	// disconnect list from the client commands
 	public static ArrayList<HostPort> disconList = new ArrayList<HostPort>();
 	
+	// connect list for tcp
+	public static Queue<HostPort> peerToConnect = new LinkedList<HostPort>();
+	
 	/***************/
 	/** functions **/
 	/***************/
@@ -95,6 +98,7 @@ public class PeerMaster {
 			Queue<FileSystemEvent> newQ = new LinkedList<FileSystemEvent>();
 			peerList.add(peerNew);
 			peerEventQ.put(peerNew, newQ);
+			numPeersConnection += 1;
 			return true;
 		}
 	}
@@ -104,6 +108,7 @@ public class PeerMaster {
 		if(containPeer(peerNew)) {
 			peerList.remove(peerNew);
 			peerEventQ.remove(peerNew);
+			numPeersConnection -= 1;
 			return true;
 		} else {
 			
